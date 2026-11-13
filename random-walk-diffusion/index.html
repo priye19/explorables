@@ -28,14 +28,18 @@
   </header>
 
   <section class="xp-controls">
-    <div class="xp-row">
-      <label class="xp-field">Dimension
-        <select id="dim"><option value="1">1D</option><option value="2">2D</option><option value="3" selected>3D</option></select>
-      </label>
-      <button class="btn" type="button" data-open="notes">Notes</button>
-      <button class="btn" type="button" data-open="settings">Settings</button>
-    </div>
-    <div class="xp-row xp-dials">
+    <div class="xp-deck">
+      <div class="xp-about">
+        <div class="xp-row">
+          <label class="xp-field">Dimension
+            <select id="dim"><option value="1">1D</option><option value="2">2D</option><option value="3" selected>3D</option></select>
+          </label>
+          <button class="btn" type="button" data-open="notes">Notes</button>
+          <button class="btn" type="button" data-open="settings">Settings</button>
+        </div>
+        <p id="about"></p>
+        <p><b>Try it:</b> press Play and watch the cloud spread. Then press A, B, C or D above "Spread against time" to see which curve matches, or change a slider and press Play again. Notes explains the theory.</p>
+      </div>
       <div class="xp-run">
         <div class="xp-run-buttons">
           <button class="btn btn-primary" type="button" id="play">▶ Play</button>
@@ -43,11 +47,14 @@
           <button class="btn" type="button" id="reset">Reset</button>
         </div>
         <span class="xp-status" id="status"></span>
+        <span class="hint">Play runs the simulation; One step moves every molecule once; Reset puts them all back at the start.</span>
       </div>
-      <label class="xp-dial"><span class="top">Speed (steps per frame)<span class="val" id="speedV"></span></span><input type="range" id="speed" min="1" max="20" value="2"></label>
-      <label class="xp-dial"><span class="top">Number of molecules, N</span><select id="N"></select></label>
-      <label class="xp-dial"><span class="top">Step length a (µm)<span class="val" id="aV"></span></span><input type="range" id="a" min="0.5" max="3" step="0.5" value="1"></label>
-      <label class="xp-dial"><span class="top">Time step Δt (ms)<span class="val" id="dtV"></span></span><input type="range" id="dt" min="0.25" max="2" step="0.25" value="1"></label>
+      <div class="xp-dialgrid">
+        <label class="xp-dial"><span class="top">Number of molecules, N</span><select id="N"></select><span class="hint">How many molecules start together at the centre.</span></label>
+        <label class="xp-dial"><span class="top">Speed (steps per frame)<span class="val" id="speedV"></span></span><input type="range" id="speed" min="1" max="20" value="2"><span class="hint">How fast the animation plays. It does not change the physics.</span></label>
+        <label class="xp-dial"><span class="top">Step length a (µm)<span class="val" id="aV"></span></span><input type="range" id="a" min="0.5" max="3" step="0.5" value="1"><span class="hint">How far a molecule moves in one jump.</span></label>
+        <label class="xp-dial"><span class="top">Time step Δt (ms)<span class="val" id="dtV"></span></span><input type="range" id="dt" min="0.25" max="2" step="0.25" value="1"><span class="hint">How long one jump takes. Time t = number of jumps × Δt.</span></label>
+      </div>
     </div>
   </section>
 
@@ -55,13 +62,13 @@
     <div class="xp-col">
       <div class="card main grow"><h2 id="viewTitle"></h2><canvas id="view"></canvas></div>
       <div class="card numbers">
-        <h2>Simulation against the prediction</h2>
+        <h2>Simulation against the prediction<span class="sub">averages over all N molecules now, beside the values theory predicts</span></h2>
         <table class="xp-table"><thead><tr><th>Quantity</th><th>Simulation</th><th>Prediction</th></tr></thead><tbody id="ro"></tbody></table>
       </div>
     </div>
     <div class="xp-col">
       <div class="card grow">
-        <h2>Spread against time</h2>
+        <h2>Spread against time<span class="sub">how far the molecules typically are from where they started</span></h2>
         <div class="cands">Which curve fits?
           <button type="button" class="A" data-c="A" title="d proportional to t">A</button>
           <button type="button" class="B" data-c="B" title="d proportional to t squared">B</button>
@@ -73,11 +80,11 @@
         <div class="gaps" id="gaps"></div>
       </div>
       <div class="card grow">
-        <h2>Concentration profile along x</h2>
+        <h2>Concentration profile along x<span class="sub">how many molecules are at each position</span></h2>
         <canvas id="cvH"></canvas>
       </div>
       <div class="card grow">
-        <h2>Average position against time</h2>
+        <h2>Average position against time<span class="sub">where the molecules are on average; theory says it stays at 0</span></h2>
         <canvas id="cvM"></canvas>
       </div>
     </div>
@@ -309,6 +316,9 @@ class App{
   applyDim(){
     document.querySelectorAll('[data-dims]').forEach(el=>{el.style.display=el.dataset.dims.includes(String(this.d))?'':'none';});
     $('viewTitle').textContent=VIEW_TITLE[this.d===1&&$('pic1').value==='time'?1.5:this.d];
+    const where={1:'on a line',2:'on a flat surface, seen from above',3:'in space'}[this.d];
+    const move=this.d===1?'jumps a distance a to the left or to the right, with equal chance':'takes a random step of size a (Settings shows the exact rule)';
+    $('about').innerHTML=`<b>Diffusion</b> is how molecules spread out by moving at random, with no stirring or flow. Each dot here is one molecule ${where}. All start at the same point, and every time step Δt each one ${move}, regardless of its earlier jumps. <span style="color:var(--measured);font-weight:700">Orange</span> marks how far they have spread; dashed lines show what theory predicts.`;
   }
   labels(){$('speedV').textContent=$('speed').value; $('aV').textContent=$('a').value; $('dtV').textContent=$('dt').value;}
   rebuild(){

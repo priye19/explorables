@@ -59,9 +59,17 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px}
 .xp-sep{width:1px;height:28px;background:var(--border);margin:0 4px}
 .xp-status{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
 .xp-dials{gap:14px 22px;align-items:flex-start}
-/* the run controls: buttons with the run's progress under them, first in the row of simulation parameters */
-.xp-run{display:flex;flex-direction:column;gap:4px;padding-right:22px;border-right:1px solid var(--border)}
-.xp-run-buttons{display:flex;gap:8px}
+/* the control deck in three parts, side by side on wide screens:
+   about (main drop-down, Notes, Settings, what is shown and what to do) | run buttons | main dials with their meanings */
+.xp-deck{display:grid;grid-template-columns:minmax(300px,1.25fr) 300px minmax(420px,1.5fr);gap:10px 22px;align-items:start}
+.xp-about p{margin:6px 0 0;font-size:13px;line-height:1.4;color:var(--muted)}
+.xp-about p b{color:var(--text)}
+.xp-run{display:flex;flex-direction:column;gap:5px;padding:0 22px;border-left:1px solid var(--border);border-right:1px solid var(--border);align-self:stretch}
+.xp-run-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.xp-run .hint,.xp-dial .hint{font-size:12px;line-height:1.3;color:var(--muted)}
+.xp-dialgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 22px}
+.xp-dialgrid .xp-dial{max-width:none}
+.card h2 .sub{font-weight:400;font-size:12.5px;color:var(--muted);margin-left:8px}
 .xp-dial{display:flex;flex-direction:column;gap:2px;flex:1 1 170px;max-width:270px;font-size:13px;color:var(--muted)}
 .xp-dial .top{display:flex;justify-content:space-between;gap:8px}
 .xp-dial .val{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
@@ -82,8 +90,10 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px}
   .xp-sep{display:none}
   .xp-header h1{font-size:16px}
   .card.main canvas{height:92vw;max-height:640px}
-  .xp-run{flex:1 1 100%;padding-right:0;border-right:none}
+  .xp-deck{grid-template-columns:minmax(0,1fr)}
+  .xp-run{padding:10px 0;border:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
 }
+@media (max-width:600px){.xp-dialgrid{grid-template-columns:minmax(0,1fr)} .card h2 .sub{display:block;margin:2px 0 0}}
 
 /* ---- readout table ---- */
 table.xp-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
