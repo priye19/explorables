@@ -57,8 +57,11 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px}
 .xp-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .xp-field{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
 .xp-sep{width:1px;height:28px;background:var(--border);margin:0 4px}
-.xp-status{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums}
-.xp-dials{gap:14px 22px}
+.xp-status{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
+.xp-dials{gap:14px 22px;align-items:flex-start}
+/* the run controls: buttons with the run's progress under them, first in the row of simulation parameters */
+.xp-run{display:flex;flex-direction:column;gap:4px;padding-right:22px;border-right:1px solid var(--border)}
+.xp-run-buttons{display:flex;gap:8px}
 .xp-dial{display:flex;flex-direction:column;gap:2px;flex:1 1 170px;max-width:270px;font-size:13px;color:var(--muted)}
 .xp-dial .top{display:flex;justify-content:space-between;gap:8px}
 .xp-dial .val{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
@@ -79,7 +82,7 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px}
   .xp-sep{display:none}
   .xp-header h1{font-size:16px}
   .card.main canvas{height:92vw;max-height:640px}
-  .xp-status{margin-left:0}
+  .xp-run{flex:1 1 100%;padding-right:0;border-right:none}
 }
 
 /* ---- readout table ---- */

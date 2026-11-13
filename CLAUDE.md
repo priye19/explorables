@@ -14,13 +14,14 @@ A public collection of interactive teaching pages for Aashish's students, served
   - Results laid out so everything is visible together: the main picture on one half of the page, the plots stacked on the other half.
   - On the left of the control section: the explorable's main choice as a drop-down (for the random walk, the dimension), then a Notes button, then a Settings button. Notes holds the theory and explanation, with his lecture notes on the topic where there are any.
   - The random walk explorable: dimension as a drop-down (1D, 2D, 3D), 3D by default.
+- 2026-11-13: All simulation parameters and the run buttons (Play, One step, Reset) sit together in one area, the second row of the control section, not split across two rows. The first row holds only the main drop-down, Notes and Settings.
 
 ## The design language (the shared theme: `theme/explorables.css` and `theme/explorables.js`)
 
 Built 2026-11-13 to carry out the decisions above; the details below are the implementation, which he has not separately approved.
 
 - **Every explorable loads the shared theme** (`../theme/explorables.css` and `../theme/explorables.js` in `<head>`), never its own copy, so one change restyles all of them.
-- **Page frame:** `.xp-app.fit` holds the header bar (`.xp-header`: back link "← Explorables", red title, theme button `.xp-theme`), the control deck (`.xp-controls`: first row = main drop-down, Notes, Settings, separator, Play / One step / Reset, status; second row = main dials `.xp-dial`), and the results (`.xp-results`: two columns `.xp-col` of `.card`s). On screens 1000 px and wider the page fits the window without scrolling; narrower screens stack everything in one column.
+- **Page frame:** `.xp-app.fit` holds the header bar (`.xp-header`: back link "← Explorables", red title, theme button `.xp-theme`), the control deck (`.xp-controls`: first row = main drop-down, Notes, Settings; second row = the run group `.xp-run` (Play / One step / Reset with the status `.xp-status` under them), then the main dials `.xp-dial`), and the results (`.xp-results`: two columns `.xp-col` of `.card`s). On screens 1000 px and wider the page fits the window without scrolling; narrower screens stack everything in one column.
 - **Panels:** Notes and Settings are `<aside class="xp-panel" id=...>`, opened by any button with `data-open="id"`, closed by `data-close`, the backdrop or Escape (`XP.init()` wires them). Settings options that apply only to some modes carry `data-dims` (or an equivalent) and are hidden otherwise.
 - **Colour roles:** `--accent` (red, as his lecture headings) for titles and headings; `--primary` (blue) for anything pressed; `--measured` (orange, solid lines) for what the simulation measured; `--theory` (ink colour, always dashed) for what a formula predicts; `--c1` to `--c5` for further series, in that order. Canvases read the colours with `XP.palette()` and redraw on `XP.onTheme`, so plots follow the theme.
 - **Plots:** drawn with `XP.plot`; the legend sits in rows above the plot, never over the data.

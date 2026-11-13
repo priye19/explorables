@@ -34,13 +34,16 @@
       </label>
       <button class="btn" type="button" data-open="notes">Notes</button>
       <button class="btn" type="button" data-open="settings">Settings</button>
-      <span class="xp-sep"></span>
-      <button class="btn btn-primary" type="button" id="play">▶ Play</button>
-      <button class="btn" type="button" id="step">One step</button>
-      <button class="btn" type="button" id="reset">Reset</button>
-      <span class="xp-status" id="status"></span>
     </div>
     <div class="xp-row xp-dials">
+      <div class="xp-run">
+        <div class="xp-run-buttons">
+          <button class="btn btn-primary" type="button" id="play">▶ Play</button>
+          <button class="btn" type="button" id="step">One step</button>
+          <button class="btn" type="button" id="reset">Reset</button>
+        </div>
+        <span class="xp-status" id="status"></span>
+      </div>
       <label class="xp-dial"><span class="top">Speed (steps per frame)<span class="val" id="speedV"></span></span><input type="range" id="speed" min="1" max="20" value="2"></label>
       <label class="xp-dial"><span class="top">Number of molecules, N</span><select id="N"></select></label>
       <label class="xp-dial"><span class="top">Step length a (µm)<span class="val" id="aV"></span></span><input type="range" id="a" min="0.5" max="3" step="0.5" value="1"></label>
