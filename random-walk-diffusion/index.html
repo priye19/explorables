@@ -658,12 +658,13 @@ class Tab{
   legendView(ctx,ox,oy){
     const S=this.sim;
     ctx.fillStyle='#1b2230'; ctx.font='bold 15px '+FONT; ctx.textAlign='left'; ctx.textBaseline='bottom';
-    ctx.fillText(`t = ${fmt(S.n*S.dt)} ms    n = ${S.n}`,ox,oy-6);
+    const phone=this.cv.getBoundingClientRect().width<600;
+    ctx.fillText(`t = ${fmt(S.n*S.dt)} ms    n = ${S.n}`,ox,oy-(phone?24:6));
     if(!this.ui.circles.checked) return;
     ctx.font='12px '+FONT;
     const cw=this.cv.getBoundingClientRect().width;
     if(cw<600){ // on a phone the key goes on its own row under the time
-      let xx=ox; const y=oy+10;
+      let xx=ox; const y=oy-5;
       ctx.strokeStyle=COL.meas; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(xx,y-6); ctx.lineTo(xx+20,y-6); ctx.stroke();
       ctx.fillStyle='#1b2230'; ctx.fillText('measured',xx+25,y); xx+=25+ctx.measureText('measured').width+14;
       ctx.strokeStyle='#111'; ctx.lineWidth=1.8; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.moveTo(xx,y-6); ctx.lineTo(xx+20,y-6); ctx.stroke(); ctx.setLineDash([]);
@@ -728,7 +729,7 @@ class Tab{
     const o=P(0,0,0); ctx.strokeStyle='#111'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(o[0]-6,o[1]); ctx.lineTo(o[0]+6,o[1]); ctx.moveTo(o[0],o[1]-6); ctx.lineTo(o[0],o[1]+6); ctx.stroke();
     ctx.fillStyle='#5b6577'; ctx.font='12px '+FONT; ctx.textAlign='right'; ctx.textBaseline='bottom';
     ctx.fillText(`box edge = ${fmt(2*W)} µm. Drag to turn.`,w-8,h-6);
-    this.legendView(ctx,Math.max(8,cx-size/2),26);
+    this.legendView(ctx,Math.max(8,cx-size/2),w<600?44:26);
   }
 }
 
