@@ -608,7 +608,8 @@ class Tab{
     const g=setup(this.cv); if(!g) return; const {ctx,w,h}=g;
     const S=this.sim, W=this.W, u=this.ui, N=S.N, p=S.pos;
     ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
-    const size=Math.min(w,h-26), ox=(w-size)/2, oy=26+(h-26-size)/2, sc=size/(2*W), cx=ox+size/2, cy=oy+size/2;
+    const top=w<600?44:26;
+    const size=Math.min(w,h-top), ox=(w-size)/2, oy=top+(h-top-size)/2, sc=size/(2*W), cx=ox+size/2, cy=oy+size/2;
     const PX=x=>cx+x*sc, PY=y=>cy-y*sc;
     ctx.fillStyle='#eaf4fb'; ctx.fillRect(ox,oy,size,size);
     ctx.strokeStyle='#d5e3ee'; ctx.lineWidth=1;
