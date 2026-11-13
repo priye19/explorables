@@ -6,6 +6,18 @@
   const XP = {};
   const KEY = 'explorables-theme';
 
+  /* Anonymous visit counting with Umami Cloud (no cookies). Added 2026-11-13 at his request; the
+     reports are visible only in his Umami account. Loaded only on the live site, so local tests and
+     offline copies are not counted; if it cannot load, the page works the same. */
+  if (location.hostname === 'priye19.github.io') {
+    const u = document.createElement('script');
+    u.defer = true;
+    u.src = 'https://cloud.umami.is/script.js';
+    u.dataset.websiteId = 'cc6b0d13-c993-43bd-87f5-b6887c8c4e81';
+    u.dataset.domains = 'priye19.github.io';
+    document.head.appendChild(u);
+  }
+
   function load() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
   function save(t) { try { localStorage.setItem(KEY, t); } catch (e) { /* private window: not kept */ } }
   const sys = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
