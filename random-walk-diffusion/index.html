@@ -46,6 +46,7 @@ table.ro thead th{color:var(--muted);font-weight:600}
 .tools button{font:inherit;font-size:13px;font-weight:600;padding:2px 9px;border-radius:5px;border:2px solid currentColor;background:#fff;cursor:pointer}
 .gaps{font-size:12.5px;color:var(--muted);min-height:18px}
 @media(max-width:980px){.tab{grid-template-columns:minmax(0,1fr);grid-template-areas:"view" "side" "plots" "guide"}.plots{grid-template-columns:minmax(0,1fr)}.view canvas{height:80vw}.keys{margin-left:0}}
+@media(max-width:700px){header{position:static}.keys{display:none}.view canvas{height:95vw}}
 </style>
 </head>
 <body>
@@ -128,7 +129,7 @@ function drawPlot(cv,o){
   const {xmin,xmax,ymin,ymax}=o;
   const X=v=>m.l+(v-xmin)/(xmax-xmin)*pw, Y=v=>m.t+ph-(v-ymin)/(ymax-ymin)*ph;
   ctx.font='12px '+FONT; ctx.lineWidth=1;
-  const xs=niceStep(xmax-xmin,6), ys=niceStep(ymax-ymin,5);
+  const xs=niceStep(xmax-xmin,Math.max(3,Math.min(6,Math.floor(pw/60)))), ys=niceStep(ymax-ymin,5);
   ctx.strokeStyle='#e8ebf0'; ctx.fillStyle='#5b6577';
   ctx.textAlign='center'; ctx.textBaseline='top';
   for(let v=Math.ceil(xmin/xs-1e-9)*xs; v<=xmax+xs*1e-9; v+=xs){
@@ -552,7 +553,7 @@ class Tab{
     const X=t=>m.l+t/tmax*pw, Y=x=>m.t+ph/2-x/W*(ph/2);
     // grid
     ctx.font='12px '+FONT; ctx.strokeStyle='#e8ebf0'; ctx.fillStyle='#5b6577'; ctx.lineWidth=1;
-    const xs=niceStep(tmax,8), ys=niceStep(2*W,8);
+    const xs=niceStep(tmax,Math.max(3,Math.min(8,Math.floor(pw/60)))), ys=niceStep(2*W,8);
     ctx.textAlign='center'; ctx.textBaseline='top';
     for(let v=0; v<=tmax+1e-9; v+=xs){const px=X(v); ctx.beginPath(); ctx.moveTo(px,m.t); ctx.lineTo(px,m.t+ph); ctx.stroke(); ctx.fillText(tick(v,xs),px,m.t+ph+4);}
     ctx.textAlign='right'; ctx.textBaseline='middle';
