@@ -598,8 +598,9 @@ class Tab{
       for(const s of [mu+ms,mu-ms]){ctx.beginPath(); ctx.moveTo(sx,Y(s)); ctx.lineTo(sx+stripW,Y(s)); ctx.stroke();}
     }
     ctx.fillStyle='#1b2230'; ctx.font='12px '+FONT; ctx.textAlign='center'; ctx.textBaseline='bottom';
-    ctx.fillText(`all ${N} molecules now`,sx+stripW/2,m.t-4);
-    ctx.font='bold 15px '+FONT; ctx.textAlign='left'; ctx.fillText(`t = ${fmt(tn)} ms    n = ${S.n}`,m.l,m.t-6);
+    const narrow=w<600;
+    ctx.fillText(narrow?'all now':`all ${N} molecules now`,sx+stripW/2,m.t-4);
+    ctx.font=(narrow?'bold 13px ':'bold 15px ')+FONT; ctx.textAlign='left'; ctx.fillText(`t = ${fmt(tn)} ms    n = ${S.n}`,m.l,m.t-6);
   }
 
   /* ---- 2D view: the ink drop from above ---- */
