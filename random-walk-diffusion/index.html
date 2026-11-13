@@ -109,7 +109,8 @@
       <select id="pic1"><option value="line">Number line: the molecules jumping left and right</option><option value="time">Position against time: each molecule's path</option></select>
       <p class="hint">The second picture is the step diagram of the lecture: x on the vertical axis, t on the horizontal axis.</p></div>
     <div class="opt" data-dims="1"><label class="chk"><input type="checkbox" id="paths" checked> Show the paths of 25 molecules (position against time)</label></div>
-    <div class="opt"><label class="chk"><input type="checkbox" id="path" checked> Show the path of one molecule</label></div>
+    <div class="opt"><label class="chk"><input type="checkbox" id="path" checked> Follow one molecule (the blue dot and its path)</label>
+      <p class="hint">It is molecule 1 of the run. It moves by exactly the same rules as all the others; it is picked out only so you can watch one random walk.</p></div>
     <div class="opt"><label class="chk"><input type="checkbox" id="circles" checked> Show the measured and predicted spread</label></div>
     <div class="opt" data-dims="3"><label class="chk"><input type="checkbox" id="spin" checked> Turn the 3D picture slowly</label></div>
     <p class="hint">Changing N, a, Δt, the dimension, the number of steps or the step rule starts a new run.</p>
@@ -166,7 +167,7 @@
 
     <h3>What to look for</h3>
     <ol>
-      <li>Set N = 1 and follow one molecule: its path cannot be predicted, and it loops back over itself many times. Then set N = 5000: the average over many molecules follows the prediction closely.</li>
+      <li>Follow the blue dot. It is one molecule (molecule 1 of the run), picked out from the others only so you can watch it; it moves by exactly the same rules. The blue line is the path it has taken. Its path cannot be predicted, and it loops back over itself many times. Set N = 1 to see it alone, then N = 5000: the average over many molecules follows the prediction closely, although each molecule's path does not.</li>
       <li>The cloud stays centred on the start: the average position stays near 0, inside the grey band of chance variation.</li>
       <li>Watch the orange (measured) circle or sphere grow quickly at first, then slowly. Press A, B, C and D: curve D fits with the smallest gap.</li>
       <li>Tick "Squared distance": the mean squared distance grows as a straight line in t.</li>
@@ -318,7 +319,7 @@ class App{
     $('viewTitle').textContent=VIEW_TITLE[this.d===1&&$('pic1').value==='time'?1.5:this.d];
     const where={1:'on a line',2:'on a flat surface, seen from above',3:'in space'}[this.d];
     const move=this.d===1?'jumps a distance a to the left or to the right, with equal chance':'takes a random step of size a (Settings shows the exact rule)';
-    $('about').innerHTML=`<b>Diffusion</b> is how molecules spread out by moving at random, with no stirring or flow. Each dot here is one molecule ${where}. All start at the same point, and every time step Δt each one ${move}, regardless of its earlier jumps. <span style="color:var(--measured);font-weight:700">Orange</span> marks how far they have spread; dashed lines show what theory predicts.`;
+    $('about').innerHTML=`<b>Diffusion</b> is how molecules spread out by moving at random, with no stirring or flow. Each dot here is one molecule ${where}. All start at the same point, and every time step Δt each one ${move}, regardless of its earlier jumps. <span style="color:var(--measured);font-weight:700">Orange</span> marks how far they have spread; dashed lines show what theory predicts. The <span style="color:var(--path);font-weight:700">blue</span> dot is one molecule picked out so you can follow it, and the blue line is the path it has taken.`;
   }
   labels(){$('speedV').textContent=$('speed').value; $('aV').textContent=$('a').value; $('dtV').textContent=$('dt').value;}
   rebuild(){
@@ -351,7 +352,8 @@ class App{
     const g=setup($('view')); if(!g) return; const {ctx,w,h}=g, P=XP.palette(), F=P.font;
     const S=this.sim, W=this.W, N=S.N, p=S.pos, a=S.a;
     ctx.fillStyle=P.bg; ctx.fillRect(0,0,w,h);
-    const m={l:14,r:14,t:w<700?54:30,b:52}, pw=w-m.l-m.r, ph=h-m.t-m.b; if(pw<60||ph<40) return;
+    const kh=this.keyH(ctx,P,w-28);
+    const m={l:14,r:14,t:kh+34,b:52}, pw=w-m.l-m.r, ph=h-m.t-m.b; if(pw<60||ph<40) return;
     const X=x=>m.l+(x+W)/(2*W)*pw, sc=pw/(2*W);
     // the strip the molecules move in, with grid lines at round positions
     ctx.fillStyle=P.field; ctx.fillRect(m.l,m.t,pw,ph);
@@ -395,8 +397,8 @@ class App{
       const ms=Math.sqrt(S.stats.v[0]), mu=S.stats.mean[0], x0=X(mu-ms), x1=X(mu+ms), yb=m.t-8;
       ctx.strokeStyle=P.text; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x0,yb); ctx.lineTo(x1,yb); ctx.moveTo(x0,yb-5); ctx.lineTo(x0,yb+5); ctx.moveTo(x1,yb-5); ctx.lineTo(x1,yb+5); ctx.stroke();
       ctx.fillStyle=P.text; ctx.font='bold 13px '+F; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(`d = 2σ = ${fmt(2*ms)} µm`,(x0+x1)/2,yb-6);
-      this.key(ctx,P,m.l,12);
     }
+    this.key(ctx,P,m.l,9,w-28);
   }
 
   /* ---- numbers table ---- */
@@ -489,13 +491,31 @@ class App{
       band:{xs:bx,lo,hi,fill:P.band,label:'chance variation ±σ/√N'}});
   }
 
-  /* the key above the 2D and 3D pictures */
-  key(ctx,P,x,y){
-    ctx.font='12px '+P.font; ctx.textAlign='left'; ctx.textBaseline='middle';
-    ctx.strokeStyle=P.measured; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+20,y); ctx.stroke();
-    ctx.fillStyle=P.text; ctx.fillText('measured spread',x+26,y); x+=26+ctx.measureText('measured spread').width+16;
-    ctx.strokeStyle=P.theory; ctx.lineWidth=1.8; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+20,y); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillText('predicted spread',x+26,y);
+  /* the key above every main picture: what the orange, dashed and blue marks are.
+     keyLayout places the items in rows that fit maxW; the pictures leave keyH() of room for it. */
+  keyItems(maxW){
+    const it=[];
+    if($('circles').checked){it.push({k:'meas',label:'measured spread'}); it.push({k:'pred',label:'predicted spread'});}
+    if($('path').checked) it.push({k:'dot',label:maxW<520?'molecule 1 followed, and its path':'molecule 1, followed: the dot is where it is now, the line its path so far'});
+    return it;
+  }
+  keyLayout(ctx,P,maxW){
+    ctx.font='12px '+P.font;
+    const it=this.keyItems(maxW); let x=0,row=0;
+    for(const i of it){i.w=28+ctx.measureText(i.label).width+16; if(x>0&&x+i.w>maxW){row++; x=0;} i.x=x; i.row=row; x+=i.w;}
+    return {it,rows:it.length?row+1:0};
+  }
+  keyH(ctx,P,maxW){return this.keyLayout(ctx,P,maxW).rows*17;}
+  key(ctx,P,x0,y0,maxW){
+    const {it}=this.keyLayout(ctx,P,maxW);
+    ctx.textAlign='left'; ctx.textBaseline='middle';
+    for(const i of it){
+      const x=x0+i.x, y=y0+i.row*17;
+      if(i.k==='meas'){ctx.strokeStyle=P.measured; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+20,y); ctx.stroke();}
+      else if(i.k==='pred'){ctx.strokeStyle=P.theory; ctx.lineWidth=1.8; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+20,y); ctx.stroke(); ctx.setLineDash([]);}
+      else{ctx.strokeStyle=P.path; ctx.lineWidth=1.6; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+12,y); ctx.stroke(); ctx.fillStyle=P.path; ctx.beginPath(); ctx.arc(x+15,y,4.5,0,2*Math.PI); ctx.fill();}
+      ctx.fillStyle=P.text; ctx.fillText(i.label,x+26,y);
+    }
   }
 
   /* ---- 1D: x against t ---- */
@@ -503,7 +523,7 @@ class App{
     const g=setup($('view')); if(!g) return; const {ctx,w,h}=g, P=XP.palette(), F=P.font;
     const S=this.sim, W=this.W, dt=S.dt, tmax=S.nmax*dt, a=S.a;
     ctx.fillStyle=P.bg; ctx.fillRect(0,0,w,h);
-    const stripW=Math.max(70,w*0.16), m={l:56,r:8,t:24,b:38};
+    const stripW=Math.max(70,w*0.16), kw=w-56-8-stripW-14, m={l:56,r:8,t:this.keyH(ctx,P,kw)+26,b:38};
     const pw=w-m.l-m.r-stripW-14, ph=h-m.t-m.b; if(pw<40||ph<40) return;
     const X=t=>m.l+t/tmax*pw, Y=x=>m.t+ph/2-x/W*(ph/2);
     ctx.font='11.5px '+F; ctx.strokeStyle=P.grid; ctx.fillStyle=P.muted; ctx.lineWidth=1;
@@ -527,7 +547,11 @@ class App{
     }
     const stair=arr=>{ctx.beginPath(); ctx.moveTo(X(0),Y(arr[0])); for(let k=0;k<arr.length-1;k++){const tx=X((k+1)*dt); ctx.lineTo(tx,Y(arr[k])); ctx.lineTo(tx,Y(arr[k+1]));} ctx.stroke();};
     if($('paths').checked){ctx.strokeStyle='rgba(128,138,155,0.38)'; ctx.lineWidth=1; for(let k=1;k<S.M;k++) stair(S.traj[k]);}
-    if($('path').checked){ctx.strokeStyle=rgba(P.particle,1); ctx.lineWidth=2.6; stair(S.traj[0]);}
+    if($('path').checked){
+      ctx.strokeStyle=P.path; ctx.lineWidth=2.6; stair(S.traj[0]);
+      const tr=S.traj[0]; ctx.fillStyle=P.path; ctx.strokeStyle=P.bg; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(X((tr.length-1)*dt),Y(tr[tr.length-1]),5.5,0,2*Math.PI); ctx.fill(); ctx.stroke();
+    }
     const tn=S.n*dt; ctx.strokeStyle=P.path; ctx.globalAlpha=.6; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(X(tn),m.t); ctx.lineTo(X(tn),m.t+ph); ctx.stroke(); ctx.globalAlpha=1;
     ctx.restore();
     if(circles){
@@ -548,6 +572,7 @@ class App{
     }
     ctx.fillStyle=P.text; ctx.font='12px '+F; ctx.textAlign='center'; ctx.textBaseline='bottom';
     ctx.fillText(w<600?'now':`all ${N} molecules now`,sx+stripW/2,m.t-5);
+    this.key(ctx,P,m.l,9,kw);
   }
 
   /* ---- 2D: from above ---- */
@@ -555,7 +580,7 @@ class App{
     const g=setup($('view')); if(!g) return; const {ctx,w,h}=g, P=XP.palette(), F=P.font;
     const S=this.sim, W=this.W, N=S.N, p=S.pos;
     ctx.fillStyle=P.bg; ctx.fillRect(0,0,w,h);
-    const top=22, size=Math.min(w,h-top), ox=(w-size)/2, oy=top+(h-top-size)/2, sc=size/(2*W), cx=ox+size/2, cy=oy+size/2;
+    const top=this.keyH(ctx,P,w-12)+8, size=Math.min(w,h-top), ox=(w-size)/2, oy=top+(h-top-size)/2, sc=size/(2*W), cx=ox+size/2, cy=oy+size/2;
     const PX=x=>cx+x*sc, PY=y=>cy-y*sc;
     ctx.fillStyle=P.field; ctx.fillRect(ox,oy,size,size);
     ctx.strokeStyle=P.fieldGrid; ctx.lineWidth=1;
@@ -595,7 +620,8 @@ class App{
     const L=niceStep(2*W,5), bx=ox+14, by=oy+size-16;
     ctx.strokeStyle=P.text; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(bx+L*sc,by); ctx.stroke();
     ctx.fillStyle=P.text; ctx.font='12px '+F; ctx.textAlign='left'; ctx.textBaseline='bottom'; ctx.fillText(`${tick(L,L)} µm`,bx,by-4);
-    if($('circles').checked) this.key(ctx,P,ox,oy-11);
+    const kx=Math.max(6,Math.min(ox,w-6-this.keyLayout(ctx,P,w-12).it.reduce((s,i)=>i.row===0?s+i.w:s,0)));
+    this.key(ctx,P,kx,9,w-kx-6);
   }
 
   /* ---- 3D ---- */
@@ -603,7 +629,7 @@ class App{
     const g=setup($('view')); if(!g) return; const {ctx,w,h}=g, P=XP.palette(), F=P.font;
     const S=this.sim, W=this.W, N=S.N, p=S.pos;
     ctx.fillStyle=P.bg; ctx.fillRect(0,0,w,h);
-    const top=22, size=Math.min(w,h-top), cx=w/2, cy=top+(h-top)/2;
+    const top=this.keyH(ctx,P,w-12)+8, size=Math.min(w,h-top), cx=w/2, cy=top+(h-top)/2;
     const camD=4.5*W, Fz=(w<600?0.27:0.31)*size*camD/W;
     const cyw=Math.cos(this.yaw), syw=Math.sin(this.yaw), cp=Math.cos(this.pitch), sp=Math.sin(this.pitch);
     const Pj=(x,y,z)=>{const x1=cyw*x-syw*y, y1=syw*x+cyw*y, y2=cp*y1-sp*z, z2=sp*y1+cp*z, dep=camD+y2, s=Fz/dep; return [cx+x1*s, cy-z2*s, dep, s];};
@@ -639,7 +665,7 @@ class App{
     const o=Pj(0,0,0); ctx.strokeStyle=P.text; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(o[0]-6,o[1]); ctx.lineTo(o[0]+6,o[1]); ctx.moveTo(o[0],o[1]-6); ctx.lineTo(o[0],o[1]+6); ctx.stroke();
     ctx.fillStyle=P.muted; ctx.font='12px '+F; ctx.textAlign='right'; ctx.textBaseline='bottom';
     ctx.fillText(`box edge = ${fmt(2*W)} µm`,w-6,h-4);
-    if(circles) this.key(ctx,P,Math.max(6,cx-size/2),11);
+    this.key(ctx,P,6,9,w-12);
   }
 }
 
