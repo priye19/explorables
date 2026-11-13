@@ -30,6 +30,7 @@ Built 2026-11-13 to carry out the decisions above; the details below are the imp
 ## Conventions
 
 - A folder is named after the concept, never the course: lowercase words joined by hyphens (`random-walk-diffusion`).
+- **Every mode of an explorable is built and checked as one set.** Each mode's main picture shows the same kind of thing: the system itself, moving as the simulation runs (molecules on a line, in a plane, in a box). Derived views, such as a quantity against time or a profile, go in the plots or behind a choice in Settings. Before publishing, put the main picture of every mode side by side and confirm that they differ only where the difference is deliberate and stated in Notes. (Added 2026-11-13 on his approval, after the 1D mode of the random walk showed position against time while 2D and 3D showed the molecules moving in space.)
 - The front page groups explorables by subject; each entry has tags, one of them the course it was first used in.
 - Nothing is loaded from the internet: the theme is a local file of the repository. To use the collection offline, download the whole repository, not one folder.
 - Text inside the pages follows his writing rules (no em dashes, every term defined, no analogies) and refers to nothing outside the page (no "the ink drop slide").
