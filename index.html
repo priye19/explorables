@@ -5,36 +5,40 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Explorables</title>
 <meta name="description" content="Interactive pages that let you change a model and watch what happens.">
+<link rel="stylesheet" href="theme/explorables.css">
+<script src="theme/explorables.js"></script>
 <style>
-:root{--bg:#f4f6f9;--panel:#ffffff;--ink:#1b2230;--muted:#5b6577;--line:#d8dde5;--accent:#c8102e;--link:#1f5fbf;--tag:#eef2f8}
-@media (prefers-color-scheme:dark){:root{--bg:#14171c;--panel:#1d2128;--ink:#e6e9ee;--muted:#9aa3b2;--line:#2e343e;--accent:#ff5a6e;--link:#7fb0ff;--tag:#262c36}}
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif}
-main{max-width:860px;margin:0 auto;padding:40px 16px 56px}
-h1{margin:0 0 6px;font-size:34px;color:var(--accent)}
-.lead{margin:0 0 32px;color:var(--muted);font-size:17px}
-h2{font-size:18px;margin:28px 0 10px}
-a.card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 12px;color:inherit;text-decoration:none;transition:border-color .15s}
-a.card:hover,a.card:focus{border-color:var(--link)}
-.card h3{margin:0 0 4px;font-size:17px;color:var(--link)}
-.card p{margin:0 0 8px}
-.tag{display:inline-block;font-size:12.5px;background:var(--tag);color:var(--muted);border-radius:4px;padding:1px 8px;margin-right:6px}
-footer{margin-top:40px;font-size:13px;color:var(--muted)}
+main{max-width:880px;margin:0 auto;padding:28px 16px 56px}
+.lead{margin:0 0 28px;color:var(--muted);font-size:16.5px}
+h2.group{font-size:17px;margin:26px 0 10px}
+a.entry{display:block;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin:0 0 12px;color:inherit;text-decoration:none}
+a.entry:hover,a.entry:focus-visible{border-color:var(--primary)}
+.entry h3{margin:0 0 4px;font-size:17px;color:var(--primary)}
+.entry p{margin:0 0 8px}
+.tag{display:inline-block;font-size:12.5px;background:var(--surface-2);border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:0 8px;margin-right:6px}
+footer{margin-top:36px;font-size:13px;color:var(--muted)}
 </style>
 </head>
 <body>
-<main>
-  <h1>Explorables</h1>
-  <p class="lead">Interactive pages for engineering students. Each one runs a model of a physical or mathematical process in your browser: change the settings, press Play, and compare what you see with the equations from class. Nothing to install; they work on a laptop or a phone.</p>
+<div class="xp-app">
+  <header class="xp-header">
+    <h1>Explorables</h1>
+    <span class="xp-spacer"></span>
+    <button class="btn btn-quiet xp-theme" type="button"></button>
+  </header>
+  <main>
+    <p class="lead">Interactive pages for engineering students. Each one runs a model of a physical or mathematical process in your browser: change the settings, press Play, and compare what you see with the equations from class. Every page has Notes with the theory. Nothing to install; they work on a laptop or a phone.</p>
 
-  <h2>Probability and random processes</h2>
-  <a class="card" href="random-walk-diffusion/">
-    <h3>Random walk model of diffusion</h3>
-    <p>Molecules take random steps in 1D, 2D and 3D. Watch the cloud spread, and test whether its size grows in proportion to t, t² or √t.</p>
-    <span class="tag">ChE Analysis 3020</span><span class="tag">Diffusion</span><span class="tag">Variance</span>
-  </a>
+    <h2 class="group">Probability and random processes</h2>
+    <a class="entry" href="random-walk-diffusion/">
+      <h3>Random walk model of diffusion</h3>
+      <p>Molecules take random steps in 1D, 2D and 3D. Watch the cloud spread, and test whether its size grows in proportion to t, t² or √t.</p>
+      <span class="tag">ChE Analysis 3020</span><span class="tag">Diffusion</span><span class="tag">Variance</span>
+    </a>
 
-  <footer>New explorables are added to this page as the courses go on.</footer>
-</main>
+    <footer>New explorables are added to this page as the courses go on.</footer>
+  </main>
+</div>
+<script>XP.init();</script>
 </body>
 </html>

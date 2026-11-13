@@ -1,0 +1,111 @@
+/* Explorables design language: one shared look for every explorable.
+   Colour roles (the same in every explorable):
+     --accent    titles and headings (the red of the lecture headings)
+     --primary   things you press (buttons, sliders, links)
+     --measured  anything the simulation measured (solid lines, filled shapes)
+     --theory    anything a formula predicts (always drawn dashed)
+     --c1..--c5  further data series, in this order
+   Page layout: header bar, control deck (main selector, Notes, Settings, run buttons, main dials),
+   then the live results; Notes and Settings open as panels from the right. */
+
+:root{
+  --font:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  --math:"Cambria Math",Cambria,"Times New Roman",serif;
+  --bg:#f3f5f8; --surface:#ffffff; --surface-2:#f6f8fb; --text:#1b2230; --muted:#5b6577; --border:#d9dee6;
+  --accent:#c8102e; --primary:#1f5fbf; --primary-text:#ffffff;
+  --plot-bg:#ffffff; --plot-grid:#e8ebf0; --plot-axis:#9aa3b2;
+  --theory:#111111; --measured:#e8890c;
+  --c1:#1f5fbf; --c2:#2e7d32; --c3:#7b3fb5; --c4:#00838f; --c5:#c2185b;
+  --particle:214,39,40; --path:#1f5fbf; --field:#eaf4fb; --field-grid:#d5e3ee; --band:rgba(120,130,150,.18);
+  --radius:8px;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#0f1216; --surface:#181c22; --surface-2:#1f242b; --text:#e6e9ee; --muted:#9aa3b2; --border:#2c333d;
+  --accent:#ff5a6e; --primary:#5b9bff; --primary-text:#0b1220;
+  --plot-bg:#181c22; --plot-grid:#262c35; --plot-axis:#4a5260;
+  --theory:#e6e9ee; --measured:#ffa53d;
+  --c1:#6ea8ff; --c2:#5cc777; --c3:#b48cf0; --c4:#3cc7d6; --c5:#f06ba0;
+  --particle:255,95,105; --path:#6ea8ff; --field:#132029; --field-grid:#1f2f3c; --band:rgba(160,170,190,.16);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.45 var(--font)}
+a{color:var(--primary)}
+
+/* ---- page frame ---- */
+.xp-app{display:flex;flex-direction:column;min-height:100vh}
+@media (min-width:1000px){.xp-app.fit{height:100vh}}
+.xp-header{display:flex;align-items:center;gap:14px;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border)}
+.xp-back{color:var(--primary);text-decoration:none;font-size:14px;white-space:nowrap}
+.xp-header h1{margin:0;font-size:19px;color:var(--accent);font-weight:700;line-height:1.2}
+.xp-spacer{flex:1}
+
+/* ---- buttons and fields ---- */
+.btn{font:inherit;font-size:14px;font-weight:600;padding:7px 13px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;white-space:nowrap}
+.btn:hover,.btn:focus-visible{border-color:var(--primary)}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}
+.btn-quiet{background:transparent}
+select,.xp-input{font:inherit;font-size:14px;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--text)}
+input[type=range]{accent-color:var(--primary)}
+input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px}
+
+/* ---- control deck ---- */
+.xp-controls{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px 12px;display:flex;flex-direction:column;gap:10px}
+.xp-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.xp-field{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.xp-sep{width:1px;height:28px;background:var(--border);margin:0 4px}
+.xp-status{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums}
+.xp-dials{gap:14px 22px}
+.xp-dial{display:flex;flex-direction:column;gap:2px;flex:1 1 170px;max-width:270px;font-size:13px;color:var(--muted)}
+.xp-dial .top{display:flex;justify-content:space-between;gap:8px}
+.xp-dial .val{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+.xp-dial input[type=range]{width:100%}
+
+/* ---- results ---- */
+.xp-results{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px 16px 16px}
+.xp-col{display:flex;flex-direction:column;gap:12px;min-height:0;min-width:0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px 10px;display:flex;flex-direction:column;min-height:0;min-width:0}
+.card h2{margin:0 0 4px;font-size:14px;font-weight:700}
+.card .cap{font-size:12px;color:var(--muted);margin:4px 0 0}
+.card canvas{display:block;width:100%;flex:1 1 0;min-height:140px;touch-action:none}
+.card.grow{flex:1 1 0}
+@media (max-width:999px){
+  .xp-results{grid-template-columns:minmax(0,1fr)}
+  .card.grow{flex:none}
+  .card canvas{flex:none;height:270px}
+  .xp-sep{display:none}
+  .xp-header h1{font-size:16px}
+  .card.main canvas{height:92vw;max-height:640px}
+  .xp-status{margin-left:0}
+}
+
+/* ---- readout table ---- */
+table.xp-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.xp-table th,.xp-table td{padding:2px 4px;border-bottom:1px solid var(--border);text-align:right;vertical-align:top}
+.xp-table th:first-child,.xp-table td:first-child{text-align:left}
+.xp-table thead th{color:var(--muted);font-weight:600}
+
+/* ---- side panels (Notes, Settings) ---- */
+.xp-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.38);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.xp-backdrop.open{opacity:1;pointer-events:auto}
+.xp-panel{position:fixed;top:0;right:0;height:100%;width:min(600px,94vw);background:var(--surface);border-left:1px solid var(--border);transform:translateX(102%);transition:transform .22s ease;z-index:21;display:flex;flex-direction:column}
+.xp-panel.open{transform:none}
+.xp-panel>header{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--border)}
+.xp-panel>header h2{margin:0;font-size:18px;color:var(--accent)}
+.xp-panel .body{overflow:auto;padding:14px 20px 40px}
+.xp-panel .opt{display:flex;flex-direction:column;gap:4px;margin:0 0 14px;font-size:14px}
+.xp-panel .opt label.chk{display:flex;gap:10px;align-items:center;cursor:pointer}
+.xp-panel .hint{font-size:12.5px;color:var(--muted);margin:2px 0 0}
+
+/* ---- notes text ---- */
+.notes h3{color:var(--accent);font-size:16px;margin:20px 0 6px}
+.notes h3:first-child{margin-top:0}
+.notes p,.notes li{margin:0 0 8px}
+.notes ol,.notes ul{padding-left:22px;margin:0 0 8px}
+.notes .eq{display:block;margin:6px 0 12px;padding:7px 12px;background:var(--surface-2);border-left:3px solid var(--accent);border-radius:4px;font-family:var(--math);font-size:16.5px;line-height:1.6}
+.notes details{margin:8px 0 12px;border:1px solid var(--border);border-radius:6px;padding:6px 12px}
+.notes summary{cursor:pointer;font-weight:600;color:var(--primary)}
+.notes .src{font-size:12.5px;color:var(--muted);margin-top:22px}

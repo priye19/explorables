@@ -4,199 +4,208 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Random Walk Diffusion</title>
+<meta name="description" content="Molecules take random steps in 1D, 2D and 3D: watch the cloud spread and test how its size grows with time.">
+<link rel="stylesheet" href="../theme/explorables.css">
+<script src="../theme/explorables.js"></script>
 <style>
-:root{--bg:#f4f6f9;--panel:#fff;--ink:#1b2230;--muted:#5b6577;--line:#d8dde5;--red:#c8102e;--water:#eaf4fb;--btn:#1f5fbf}
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Segoe UI",system-ui,-apple-system,sans-serif}
-header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 26px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
-header h1{margin:0;font-size:21px;color:var(--red);font-weight:700}
-header .sub{color:var(--muted);font-size:13px}
-nav{display:flex;gap:6px;flex-wrap:wrap}
-nav button{font:inherit;font-weight:600;padding:7px 16px;border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;color:var(--ink)}
-nav button.on{background:var(--red);border-color:var(--red);color:#fff}
-.keys{margin-left:auto;color:var(--muted);font-size:13px}
-.tab{display:none;padding:12px 16px 28px;gap:12px;grid-template-columns:minmax(0,1.55fr) minmax(320px,1fr);grid-template-areas:"view side" "plots plots" "guide guide"}
-.tab.on{display:grid}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-width:0}
-.card h2{font-size:15px;margin:0 0 6px;font-weight:700}
-.cap{font-size:12.5px;color:var(--muted);margin:6px 0 0}
-.view{grid-area:view}
-.view canvas{display:block;width:100%;height:min(70vh,52vw);touch-action:none}
-.side{grid-area:side;display:flex;flex-direction:column;gap:12px;min-width:0}
-.plots{grid-area:plots;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.plots canvas{display:block;width:100%;height:330px}
-.guide{grid-area:guide}
-.guide .cols{columns:2 420px;column-gap:32px}
-.guide h3{font-size:15px;margin:4px 0 4px;color:var(--red);break-after:avoid}
-.guide p,.guide li{margin:0 0 6px}
-.guide ol{padding-left:20px;margin:0 0 8px}
-.btnrow{display:flex;gap:8px;margin-bottom:6px}
-.btnrow button{flex:1;font:inherit;font-weight:600;padding:8px 6px;border-radius:6px;border:1px solid var(--btn);background:#fff;color:var(--btn);cursor:pointer}
-.btnrow button.play{background:var(--btn);color:#fff}
-.ctl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;margin:7px 0;font-size:14px}
-.ctl input[type=range],.ctl select{grid-column:1/3;width:100%}
-.ctl select{font:inherit;padding:4px}
-.val{font-weight:600;font-variant-numeric:tabular-nums}
-.chk{display:flex;gap:8px;align-items:center;margin:5px 0;font-size:14px;cursor:pointer}
-table.ro{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
-table.ro th,table.ro td{padding:3px 4px;border-bottom:1px solid #eef0f4;text-align:right;vertical-align:top}
-table.ro th:first-child,table.ro td:first-child{text-align:left}
-table.ro thead th{color:var(--muted);font-weight:600}
-.tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 6px;font-size:13px}
-.tools button{font:inherit;font-size:13px;font-weight:600;padding:2px 9px;border-radius:5px;border:2px solid currentColor;background:#fff;cursor:pointer}
-.gaps{font-size:12.5px;color:var(--muted);min-height:18px}
-@media(max-width:980px){.tab{grid-template-columns:minmax(0,1fr);grid-template-areas:"view" "side" "plots" "guide"}.plots{grid-template-columns:minmax(0,1fr)}.view canvas{height:80vw}.keys{margin-left:0}}
-@media(max-width:700px){header{position:static}.keys{display:none}.view canvas{height:95vw}}
+.cands{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--muted);margin:0 0 4px}
+.cands button{font:inherit;font-size:12.5px;font-weight:700;padding:1px 9px;border-radius:5px;border:2px solid var(--cc);background:transparent;color:var(--cc);cursor:pointer}
+.cands button.on{background:var(--cc);color:var(--surface)}
+.cands .A{--cc:var(--c3)} .cands .B{--cc:var(--c2)} .cands .C{--cc:var(--c4)} .cands .D{--cc:var(--c5)}
+.cands label{display:flex;gap:6px;align-items:center;margin-left:auto;cursor:pointer}
+.gaps{font-size:12px;color:var(--muted);min-height:16px;margin-top:3px}
+.numbers{flex:0 0 auto;max-height:36%;overflow:auto}
+@media (max-width:999px){.numbers{max-height:none}}
 </style>
 </head>
 <body>
-<header>
-  <div>
-    <div class="sub"><a href="../" style="color:var(--btn);text-decoration:none">← All explorables</a></div>
+<div class="xp-app fit">
+  <header class="xp-header">
+    <a class="xp-back" href="../">← Explorables</a>
     <h1>Random walk model of diffusion</h1>
-    <div class="sub">Lengths in micrometres (µm), times in milliseconds (ms).</div>
+    <span class="xp-spacer"></span>
+    <button class="btn btn-quiet xp-theme" type="button"></button>
+  </header>
+
+  <section class="xp-controls">
+    <div class="xp-row">
+      <label class="xp-field">Dimension
+        <select id="dim"><option value="1">1D</option><option value="2">2D</option><option value="3" selected>3D</option></select>
+      </label>
+      <button class="btn" type="button" data-open="notes">Notes</button>
+      <button class="btn" type="button" data-open="settings">Settings</button>
+      <span class="xp-sep"></span>
+      <button class="btn btn-primary" type="button" id="play">▶ Play</button>
+      <button class="btn" type="button" id="step">One step</button>
+      <button class="btn" type="button" id="reset">Reset</button>
+      <span class="xp-status" id="status"></span>
+    </div>
+    <div class="xp-row xp-dials">
+      <label class="xp-dial"><span class="top">Speed (steps per frame)<span class="val" id="speedV"></span></span><input type="range" id="speed" min="1" max="20" value="2"></label>
+      <label class="xp-dial"><span class="top">Number of molecules, N</span><select id="N"></select></label>
+      <label class="xp-dial"><span class="top">Step length a (µm)<span class="val" id="aV"></span></span><input type="range" id="a" min="0.5" max="3" step="0.5" value="1"></label>
+      <label class="xp-dial"><span class="top">Time step Δt (ms)<span class="val" id="dtV"></span></span><input type="range" id="dt" min="0.25" max="2" step="0.25" value="1"></label>
+    </div>
+  </section>
+
+  <main class="xp-results">
+    <div class="xp-col">
+      <div class="card main grow"><h2 id="viewTitle"></h2><canvas id="view"></canvas></div>
+      <div class="card numbers">
+        <h2>Simulation against the prediction</h2>
+        <table class="xp-table"><thead><tr><th>Quantity</th><th>Simulation</th><th>Prediction</th></tr></thead><tbody id="ro"></tbody></table>
+      </div>
+    </div>
+    <div class="xp-col">
+      <div class="card grow">
+        <h2>Spread against time</h2>
+        <div class="cands">Which curve fits?
+          <button type="button" class="A" data-c="A" title="d proportional to t">A</button>
+          <button type="button" class="B" data-c="B" title="d proportional to t squared">B</button>
+          <button type="button" class="C" data-c="C" title="d proportional to 1 - exp(-t/tau)">C</button>
+          <button type="button" class="D" data-c="D" title="d proportional to the square root of t">D</button>
+          <label><input type="checkbox" id="sq"> Squared distance</label>
+        </div>
+        <canvas id="cvS"></canvas>
+        <div class="gaps" id="gaps"></div>
+      </div>
+      <div class="card grow">
+        <h2>Concentration profile along x</h2>
+        <canvas id="cvH"></canvas>
+      </div>
+      <div class="card grow">
+        <h2>Average position against time</h2>
+        <canvas id="cvM"></canvas>
+      </div>
+    </div>
+  </main>
+</div>
+
+<aside class="xp-panel" id="settings" aria-label="Settings">
+  <header><h2>Settings</h2><span class="xp-spacer"></span><button class="btn" type="button" data-close>Close</button></header>
+  <div class="body">
+    <div class="opt"><label for="nmax">Number of steps in the run, n<sub>max</sub></label>
+      <select id="nmax"><option>200</option><option selected>500</option><option>1000</option><option>2000</option></select></div>
+    <div class="opt" data-dims="23"><label for="rule">Step rule</label>
+      <select id="rule">
+        <option value="axes">Each coordinate moves ±a (the lecture's 1D rule on every axis)</option>
+        <option value="lattice">Move ±a along one randomly chosen axis</option>
+        <option value="angle">Move a distance a in a random direction</option>
+      </select>
+      <p class="hint">All three give a spread that grows as √t; only the constant changes. Notes explains each.</p></div>
+    <div class="opt" data-dims="2"><label for="mode">Display</label>
+      <select id="mode"><option value="dots">Molecules as dots</option><option value="conc">Concentration (molecules per area)</option></select></div>
+    <div class="opt" data-dims="1"><label class="chk"><input type="checkbox" id="paths" checked> Show the paths of 25 molecules</label></div>
+    <div class="opt"><label class="chk"><input type="checkbox" id="path" checked> Show the path of one molecule</label></div>
+    <div class="opt"><label class="chk"><input type="checkbox" id="circles" checked> Show the measured and predicted spread</label></div>
+    <div class="opt" data-dims="3"><label class="chk"><input type="checkbox" id="spin" checked> Turn the 3D picture slowly</label></div>
+    <p class="hint">Changing N, a, Δt, the dimension, the number of steps or the step rule starts a new run.</p>
+    <p class="hint" data-dims="23">In 2D and 3D each dot is drawn up to half a step away from its true point, so that molecules on the same lattice point do not hide each other. Every number and plot uses the true positions.</p>
+    <p class="hint">Keys: Space = play or pause, S = one step, R = reset.</p>
   </div>
-  <nav>
-    <button data-tab="1" class="on">1D random walk</button>
-    <button data-tab="2">2D random walk</button>
-    <button data-tab="3">3D random walk</button>
-  </nav>
-  <div class="keys">Keys: Space = play or pause, S = one step, R = reset</div>
-</header>
-<main id="main"></main>
+</aside>
+
+<aside class="xp-panel" id="notes" aria-label="Notes">
+  <header><h2>Notes</h2><span class="xp-spacer"></span><button class="btn" type="button" data-close>Close</button></header>
+  <div class="body notes">
+    <h3>The question</h3>
+    <p>A drop of ink is placed in still water. With no stirring and no flow, the ink still spreads: its molecules move from where they are concentrated to where they are not. This is <b>diffusion</b>. It is caused by Brownian motion, the random jostling of every molecule by the water molecules around it.</p>
+    <p>Let d be the width of the spreading drop. Which curve describes d against time t? (∝ means "is proportional to".)</p>
+    <span class="eq">A: d ∝ t &nbsp;&nbsp; B: d ∝ t² &nbsp;&nbsp; C: d ∝ 1 − e<sup>−t</sup> &nbsp;&nbsp; D: d ∝ √t</span>
+    <p>The buttons A, B, C and D above the spread plot fit each curve to the simulation and draw it to the end of the run. Curve C is fitted as 1 − e<sup>−t/τ</sup>, with the time constant τ chosen by the fit.</p>
+
+    <h3>The 1D random walk</h3>
+    <p>A molecule can sit only at the points 0, ±a, ±2a, ... (a is the step length). At every time step Δt it moves one step right or one step left, each with probability 1/2, whatever it did before:</p>
+    <span class="eq">x(t + Δt) = x(t) + a &nbsp;with probability 1/2<br>x(t + Δt) = x(t) − a &nbsp;with probability 1/2</span>
+    <p>After n steps the time is t = nΔt and the position is the sum of the steps:</p>
+    <span class="eq">x<sub>n</sub> = Δx<sub>1</sub> + Δx<sub>2</sub> + Δx<sub>3</sub> + ... + Δx<sub>n</sub></span>
+
+    <h3>Mean position</h3>
+    <p>The expected value of a sum is the sum of the expected values, and every step has expected value zero:</p>
+    <span class="eq">E[Δx<sub>i</sub>] = a(1/2) + (−a)(1/2) = 0 &nbsp;⇒&nbsp; E[x(t)] = Σ E[Δx<sub>i</sub>] = 0</span>
+    <p>On average a molecule goes nowhere. The plot "Average position against time" shows this.</p>
+
+    <h3>Variance: how far molecules spread</h3>
+    <p>Because E[x] = 0, the variance is Var[x(t)] = E[x(t)²] − (E[x(t)])² = E[x(t)²]. Squaring the sum gives squared terms and cross terms:</p>
+    <span class="eq">E[x(t)²] = Σ<sub>i</sub> E[Δx<sub>i</sub>²] + Σ<sub>i≠j</sub> E[Δx<sub>i</sub> Δx<sub>j</sub>]</span>
+    <p>Each squared step is a² whichever way the molecule moved: E[Δx<sub>i</sub>²] = a²(1/2) + (−a)²(1/2) = a². The steps are independent events, so each cross term splits into E[Δx<sub>i</sub>] E[Δx<sub>j</sub>] = 0 × 0 = 0. Therefore, with n = t/Δt,</p>
+    <span class="eq">Var[x(t)] = n a² = t a² / Δt</span>
+    <p>The table shows both pieces live: "Average of Δx² for the latest step" stays at a², and the cross term stays near 0.</p>
+
+    <h3>The spread grows as √t</h3>
+    <p>The spread is the standard deviation, the square root of the variance:</p>
+    <span class="eq">σ = √(t a² / Δt) = (a / √Δt) · √t</span>
+    <p>a/√Δt is a constant, so the spread grows as √t: curve D. It grows fast at first and then more and more slowly, because a molecule keeps stepping back over ground it has already covered.</p>
+
+    <h3>The diffusion coefficient</h3>
+    <p>The constant D = a²/(2Δt) is called the <b>diffusion coefficient</b> (not to be confused with curve D). With it the results read:</p>
+    <span class="eq">Var[x(t)] = 2Dt &nbsp;&nbsp; σ = √(2Dt) &nbsp;&nbsp; time to spread a distance L: t = L² / (2D)</span>
+    <p>Twice the distance takes four times as long. Small molecules in water have D of roughly 0.5 to 2 × 10<sup>−9</sup> m²/s. With the default a = 1 µm and Δt = 1 ms, the simulation has D = 500 µm²/s = 5 × 10<sup>−10</sup> m²/s.</p>
+
+    <h3>2D and 3D</h3>
+    <p>r is the distance of a molecule from where it started (r² = x² + y² in 2D, x² + y² + z² in 3D). The step rule in Settings decides how a molecule steps:</p>
+    <ol>
+      <li><b>Each coordinate moves ±a</b> (default). Every coordinate takes its own independent 1D step, so each coordinate obeys the 1D result Var = n a², and E[r²] = 2 n a² in 2D and 3 n a² in 3D.</li>
+      <li><b>Move ±a along one randomly chosen axis.</b> The molecule jumps to one of its nearest lattice points (4 in 2D, 6 in 3D). Each step adds exactly a² to r², so E[r²] = n a², and each coordinate gets n a² divided by the number of dimensions.</li>
+      <li><b>Move a distance a in a random direction.</b> Again E[r²] = n a².</li>
+    </ol>
+    <p>In every case E[r²] grows in proportion to t, so the spread grows as √t. Only the constant in front changes.</p>
+
+    <h3>What to look for</h3>
+    <ol>
+      <li>Set N = 1 and follow one molecule: its path cannot be predicted, and it loops back over itself many times. Then set N = 5000: the average over many molecules follows the prediction closely.</li>
+      <li>The cloud stays centred on the start: the average position stays near 0, inside the grey band of chance variation.</li>
+      <li>Watch the orange (measured) circle or sphere grow quickly at first, then slowly. Press A, B, C and D: curve D fits with the smallest gap.</li>
+      <li>Tick "Squared distance": the mean squared distance grows as a straight line in t.</li>
+      <li>The concentration profile becomes a bell-shaped normal distribution, highest at the start and falling off on both sides. Molecules move from high to low concentration with no force pushing them.</li>
+      <li>Double a and the spread doubles. Make Δt four times smaller and the spread at a given time doubles.</li>
+      <li>Compare 1D, 2D and 3D: the variance of one coordinate is n a² in every dimension (default rule), and each extra dimension adds n a² to E[r²].</li>
+    </ol>
+
+    <h3>Practical problem: how long does diffusion take?</h3>
+    <p>A dye in still water has the diffusion coefficient D = a²/(2Δt) = 1.0 × 10<sup>−9</sup> m²/s.</p>
+    <ol type="a">
+      <li>Show that the spread is σ = √(2Dt), so the time to spread a distance L is t = L²/(2D).</li>
+      <li>How long does the dye take to spread across a cell, L = 10 µm, and across a beaker, L = 1 cm?</li>
+      <li>Two streams flow side by side at U = 1 mm/s in a microfluidic channel w = 100 µm wide. How long must the channel be for the dye to spread across its width?</li>
+      <li>Repeat (c) for a channel 10 times narrower, w = 10 µm.</li>
+    </ol>
+    <details><summary>Show the solution</summary>
+      <p><b>(a)</b> From the random walk, Var[x(t)] = t a²/Δt, and the definition of D gives a²/Δt = 2D. So Var = 2Dt and σ = √(2Dt). Spreading a distance L means σ = L, so L² = 2Dt and t = L²/(2D).</p>
+      <p><b>(b)</b> Cell: t = (1 × 10<sup>−5</sup> m)² / (2 × 1.0 × 10<sup>−9</sup> m²/s) = 0.05 s. Beaker: t = (1 × 10<sup>−2</sup> m)² / (2 × 1.0 × 10<sup>−9</sup> m²/s) = 5 × 10<sup>4</sup> s, about 14 hours. Going 1000 times farther takes 10<sup>6</sup> times longer: inside a cell diffusion is fast enough, but a beaker must be stirred.</p>
+      <p><b>(c)</b> t = w²/(2D) = (1 × 10<sup>−4</sup> m)² / (2 × 1.0 × 10<sup>−9</sup> m²/s) = 5 s. In that time the fluid moves Ut = (1 × 10<sup>−3</sup> m/s)(5 s) = 5 mm along the channel, so the channel must be about 5 mm long.</p>
+      <p><b>(d)</b> t = (1 × 10<sup>−5</sup> m)² / (2D) = 0.05 s, so the length is Ut = 50 µm. A channel 10 times narrower needs a time and a length 100 times smaller.</p>
+    </details>
+    <p class="src">Based on the ChE Analysis 3020 lecture notes on diffusion and the random walk.</p>
+  </div>
+</aside>
 
 <script>
 (function(){
 'use strict';
-
-/* ---------- constants ---------- */
-const COL={meas:'#e8890c',theory:'#111111',path:'#1f5fbf',A:'#7b3fb5',B:'#2e7d32',C:'#00838f',D:'#c2185b',coord:['#1f5fbf','#2e7d32','#7b3fb5']};
+const fmt=XP.fmt, niceStep=XP.niceStep, tick=XP.tick, setup=XP.setup;
 const CN=['x','y','z'];
 const CANDS={
-  A:{name:'A: d ∝ t',f:t=>t},
-  B:{name:'B: d ∝ t²',f:t=>t*t},
-  C:{name:'C: d ∝ 1 − e^(−t/τ)',f:null},
-  D:{name:'D: d ∝ √t',f:t=>Math.sqrt(t)}
+  A:{name:'A: d ∝ t',f:t=>t,col:'c3'},
+  B:{name:'B: d ∝ t²',f:t=>t*t,col:'c2'},
+  C:{name:'C: d ∝ 1 − e^(−t/τ)',f:null,col:'c4'},
+  D:{name:'D: d ∝ √t',f:t=>Math.sqrt(t),col:'c5'}
 };
 const NLIST=[1,10,50,200,500,1000,2000,5000];
-const NDEFAULT={1:500,2:2000,3:2000};
-
-/* ---------- helpers ---------- */
-function fmt(v){
-  if(v===null||v===undefined||!isFinite(v)) return '-';
-  if(v===0) return '0';
-  const a=Math.abs(v);
-  if(a>=1000) return Math.round(v).toLocaleString('en-US');
-  const dec=Math.min(4,Math.max(0,2-Math.floor(Math.log10(a))));
-  const s=v.toFixed(dec);
-  return /^-0(\.0*)?$/.test(s)?s.slice(1):s;
-}
-function niceStep(range,target){
-  const raw=range/target, p=Math.pow(10,Math.floor(Math.log10(raw))), f=raw/p;
-  return (f<1.5?1:f<3?2:f<7?5:10)*p;
-}
-function tick(v,step){
-  const d=Math.max(0,-Math.floor(Math.log10(step)+1e-9));
-  if(Math.abs(v)<step*1e-6) v=0;
-  return v.toFixed(d);
-}
-function setup(cv){
-  const r=cv.getBoundingClientRect();
-  const w=Math.round(r.width), h=Math.round(r.height);
-  if(w<30||h<30) return null;
-  const dpr=window.devicePixelRatio||1;
-  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);}
-  const ctx=cv.getContext('2d');
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  return {ctx,w,h};
-}
-const FONT='"Segoe UI",system-ui,sans-serif';
-
-/* A general line/bar plot with axes, ticks, labels and a legend. */
-function drawPlot(cv,o){
-  const g=setup(cv); if(!g) return;
-  const {ctx,w,h}=g;
-  ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
-  // legend items are laid out in rows above the plot, so they never cover the data
-  const items=[];
-  if(o.bars&&o.bars.label) items.push({label:o.bars.label,box:o.bars.fill,color:o.bars.stroke});
-  if(o.band&&o.band.label) items.push({label:o.band.label,box:o.band.fill,color:o.band.fill});
-  for(const s of o.series) if(s.label) items.push(s);
-  ctx.font='12px '+FONT;
-  const m0l=58, avail=w-m0l-12; let lx=0, rowsN=items.length?1:0;
-  for(const it of items){ it.w=34+ctx.measureText(it.label).width+14; if(lx>0&&lx+it.w>avail){rowsN++; lx=0;} it.row=rowsN-1; it.x=lx; lx+=it.w; }
-  const m={l:m0l,r:12,t:10+rowsN*17,b:42}, pw=w-m.l-m.r, ph=h-m.t-m.b;
-  const {xmin,xmax,ymin,ymax}=o;
-  const X=v=>m.l+(v-xmin)/(xmax-xmin)*pw, Y=v=>m.t+ph-(v-ymin)/(ymax-ymin)*ph;
-  ctx.font='12px '+FONT; ctx.lineWidth=1;
-  const xs=niceStep(xmax-xmin,Math.max(3,Math.min(6,Math.floor(pw/60)))), ys=niceStep(ymax-ymin,5);
-  ctx.strokeStyle='#e8ebf0'; ctx.fillStyle='#5b6577';
-  ctx.textAlign='center'; ctx.textBaseline='top';
-  for(let v=Math.ceil(xmin/xs-1e-9)*xs; v<=xmax+xs*1e-9; v+=xs){
-    const px=X(v); ctx.beginPath(); ctx.moveTo(px,m.t); ctx.lineTo(px,m.t+ph); ctx.stroke();
-    ctx.fillText(tick(v,xs),px,m.t+ph+4);
-  }
-  ctx.textAlign='right'; ctx.textBaseline='middle';
-  for(let v=Math.ceil(ymin/ys-1e-9)*ys; v<=ymax+ys*1e-9; v+=ys){
-    const py=Y(v); ctx.beginPath(); ctx.moveTo(m.l,py); ctx.lineTo(m.l+pw,py); ctx.stroke();
-    ctx.fillText(tick(v,ys),m.l-5,py);
-  }
-  ctx.fillStyle='#1b2230'; ctx.font='13px '+FONT;
-  ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(o.xlabel,m.l+pw/2,h-3);
-  ctx.save(); ctx.translate(13,m.t+ph/2); ctx.rotate(-Math.PI/2); ctx.textBaseline='middle'; ctx.fillText(o.ylabel,0,0); ctx.restore();
-
-  ctx.save(); ctx.beginPath(); ctx.rect(m.l,m.t,pw,ph); ctx.clip();
-  if(o.band){
-    const b=o.band; ctx.fillStyle=b.fill; ctx.beginPath();
-    b.xs.forEach((x,i)=>{const px=X(x),py=Y(b.hi[i]); i?ctx.lineTo(px,py):ctx.moveTo(px,py);});
-    for(let i=b.xs.length-1;i>=0;i--) ctx.lineTo(X(b.xs[i]),Y(b.lo[i]));
-    ctx.closePath(); ctx.fill();
-  }
-  if(o.bars){
-    const b=o.bars; ctx.fillStyle=b.fill; ctx.strokeStyle=b.stroke; ctx.lineWidth=1;
-    for(let i=0;i<b.x0.length;i++){
-      if(b.y[i]<=0) continue;
-      const x0=X(b.x0[i]), x1=X(b.x1[i]), y=Y(b.y[i]), y0=Y(0);
-      ctx.fillRect(x0,y,x1-x0,y0-y); ctx.strokeRect(x0+0.5,y+0.5,x1-x0-1,y0-y-1);
-    }
-  }
-  for(const s of o.series){
-    if(!s.xs.length) continue;
-    ctx.strokeStyle=s.color; ctx.lineWidth=s.width||2; ctx.setLineDash(s.dash||[]);
-    ctx.beginPath();
-    for(let i=0;i<s.xs.length;i++){const px=X(s.xs[i]),py=Y(s.ys[i]); i?ctx.lineTo(px,py):ctx.moveTo(px,py);}
-    ctx.stroke();
-  }
-  ctx.setLineDash([]); ctx.restore();
-  ctx.strokeStyle='#9aa3b2'; ctx.lineWidth=1; ctx.strokeRect(m.l+0.5,m.t+0.5,pw,ph);
-
-  // legend
-  ctx.font='12px '+FONT;
-  for(const it of items){
-    const bx=m.l+it.x, y=10+it.row*17;
-    if(it.box){ctx.fillStyle=it.box; ctx.fillRect(bx,y-5,22,10); ctx.strokeStyle=it.color; ctx.lineWidth=1; ctx.strokeRect(bx+0.5,y-4.5,21,9);}
-    else{ctx.strokeStyle=it.color; ctx.lineWidth=it.width||2; ctx.setLineDash(it.dash||[]); ctx.beginPath(); ctx.moveTo(bx,y); ctx.lineTo(bx+22,y); ctx.stroke(); ctx.setLineDash([]);}
-    ctx.fillStyle='#1b2230'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(it.label,bx+28,y);
-  }
-}
+const VIEW_TITLE={1:'Positions of the molecules against time',2:'Molecules spreading from one point, seen from above',3:'Molecules spreading from one point in three dimensions (drag to turn)'};
+const rgba=(rgb,a)=>`rgba(${rgb},${a})`;
 
 /* ---------- the random walk ---------- */
 class Walk{
-  constructor(d,o){
-    this.d=d; this.N=o.N; this.a=o.a; this.dt=o.dt; this.nmax=o.nmax; this.rule=(d===1)?'axes':o.rule;
-    this.reset();
-  }
-  /* E[r^2] = k n a^2 ; per coordinate Var = (k/d) n a^2 */
-  get k(){return this.rule==='axes'?this.d:1;}
-  get pc(){return this.k/this.d;}
+  constructor(d,o){this.d=d;this.N=o.N;this.a=o.a;this.dt=o.dt;this.nmax=o.nmax;this.rule=(d===1)?'axes':o.rule;this.reset();}
+  get k(){return this.rule==='axes'?this.d:1;}      // E[r^2] = k n a^2
+  get pc(){return this.k/this.d;}                    // Var of one coordinate = pc n a^2
   reset(){
     const N=this.N,d=this.d;
     this.pos=new Float64Array(N*d); this.last=new Float64Array(N*d); this.prev=new Float64Array(N*d);
     this.n=0;
     this.jit=new Float32Array(N); for(let i=0;i<N;i++) this.jit[i]=Math.random();
-    // drawing offset of less than half a step, used only for drawing dots, so that molecules
-    // sitting on the same lattice point do not hide each other
-    const off=(this.rule==='angle')?0:0.45*this.a;
+    const off=(this.rule==='angle'||d===1)?0:0.45*this.a;
     this.off=new Float32Array(N*d); for(let i=0;i<N*d;i++) this.off[i]=(2*Math.random()-1)*off;
     this.trail=[new Array(d).fill(0)];
     this.M=Math.min(N,25);
@@ -211,15 +220,10 @@ class Walk{
     const L=this.last;
     for(let i=0;i<N;i++){
       const o=i*d;
-      if(rule==='axes'){
-        for(let c=0;c<d;c++) L[o+c]=Math.random()<0.5?a:-a;
-      }else if(rule==='lattice'){
-        for(let c=0;c<d;c++) L[o+c]=0;
-        L[o+((Math.random()*d)|0)]=Math.random()<0.5?a:-a;
-      }else{
-        if(d===2){const th=2*Math.PI*Math.random(); L[o]=a*Math.cos(th); L[o+1]=a*Math.sin(th);}
-        else{const z=2*Math.random()-1, ph=2*Math.PI*Math.random(), s=Math.sqrt(1-z*z); L[o]=a*s*Math.cos(ph); L[o+1]=a*s*Math.sin(ph); L[o+2]=a*z;}
-      }
+      if(rule==='axes'){for(let c=0;c<d;c++) L[o+c]=Math.random()<0.5?a:-a;}
+      else if(rule==='lattice'){for(let c=0;c<d;c++) L[o+c]=0; L[o+((Math.random()*d)|0)]=Math.random()<0.5?a:-a;}
+      else if(d===2){const th=2*Math.PI*Math.random(); L[o]=a*Math.cos(th); L[o+1]=a*Math.sin(th);}
+      else{const z=2*Math.random()-1, ph=2*Math.PI*Math.random(), s=Math.sqrt(1-z*z); L[o]=a*s*Math.cos(ph); L[o+1]=a*s*Math.sin(ph); L[o+2]=a*z;}
       for(let c=0;c<d;c++) pos[o+c]+=L[o+c];
     }
     this.n++;
@@ -245,205 +249,89 @@ class Walk{
   }
 }
 
-/* ---------- text for each tab ---------- */
-const RULE_TEXT=d=>`
-<h3>The three step rules</h3>
-<ol>
-<li><b>Each coordinate moves ±a.</b> At every step, ${d===2?'x and y each':'x, y and z each'} take their own 1D step of +a or −a with probability 1/2, as on the lecture slide. Each coordinate then obeys the 1D result Var[x] = n a², and because r² = ${d===2?'x² + y²':'x² + y² + z²'}, the mean squared distance from the start is E[r²] = ${d} n a². This is the default.</li>
-<li><b>Move ±a along one randomly chosen axis.</b> The molecule jumps to one of its ${2*d} nearest lattice points, a distance a away. Each step adds a² to r², so E[r²] = n a², and each coordinate gets Var = n a²/${d}.</li>
-<li><b>Move a in a random direction.</b> The step has length a and a direction chosen uniformly at random. Again E[r²] = n a².</li>
-</ol>
-<p>All three rules give a spread that grows as √t. Only the constant in front changes. Switch the rule during the lesson and watch the dashed prediction move with it.</p>`;
+/* Least-squares fit of c*f(t); for curve C also the time constant tau. */
+function fitCurve(key,ts,ys){
+  const m=ts.length; if(m<3) return null;
+  const fitWith=f=>{let sfy=0,sff=0; for(let i=0;i<m;i++){const v=f(ts[i]); sfy+=v*ys[i]; sff+=v*v;} const c=sff>0?sfy/sff:0; let sse=0; for(let i=0;i<m;i++){const e=ys[i]-c*f(ts[i]); sse+=e*e;} return {c,sse,f};};
+  let r;
+  if(key!=='C') r=fitWith(CANDS[key].f);
+  else{const tm=ts[m-1]; for(let j=0;j<=60;j++){const tau=tm*Math.pow(10,-2+3*j/60); const q=fitWith(t=>1-Math.exp(-t/tau)); q.tau=tau; if(!r||q.sse<r.sse) r=q;}}
+  r.gap=Math.sqrt(r.sse/m);
+  return r;
+}
 
-const GUIDE={
-1:`<div class="cols">
-<h3>What this tab shows</h3>
-<p>Every molecule starts at x = 0. At every time step Δt it moves a distance a to the right or to the left, each with probability 1/2, independently of all its earlier steps. This is the 1D random walk of the lecture. After n steps the position is x<sub>n</sub> = Δx<sub>1</sub> + Δx<sub>2</sub> + ... + Δx<sub>n</sub>, and the time is t = nΔt.</p>
-<p>The large picture plots position x against time t for 25 molecules, as on the lecture slide. The thick red line is one molecule. The strip on the right shows where all N molecules are at the current time.</p>
-<h3>What to look for</h3>
-<ol>
-<li>The red path of one molecule cannot be predicted. Press Reset and it changes completely.</li>
-<li>The average position E[x] stays close to 0 (bottom right plot), because E[Δx<sub>i</sub>] = a(1/2) + (−a)(1/2) = 0.</li>
-<li>Each step adds a² to the mean squared position: the table row "Average of Δx² for the latest step" stays at a². The cross terms E[Δx<sub>i</sub>Δx<sub>j</sub>] are 0 because the steps are independent: the table row for the cross term hovers around 0. So Var[x] = n a² = t a²/Δt.</li>
-<li>The spread, the standard deviation of x, therefore grows as (a/√Δt)√t. It is the dashed envelope in the large picture and the dashed curve in the spread plot.</li>
-<li>Test the four curves of the ink drop slide: press A, B, C or D above the spread plot. Each button fits that curve to the measured spread and draws it to the end of the run. The numbers under the buttons give the average gap between each curve and the data.</li>
-<li>Tick "Show the mean squared distance instead": E[x²] grows as a straight line in t.</li>
-<li>The concentration profile (bottom middle) takes the bell shape of a normal distribution with mean 0 and variance n a². Concentration is highest at the starting point and falls off on both sides, so molecules move from high to low concentration with no force pushing them.</li>
-<li>Set N = 1, then N = 5000. One molecule wanders far from the prediction; the average over 5000 molecules follows it closely.</li>
-<li>Double a and the spread doubles. Make Δt four times smaller and the spread at a given time doubles, because the constant is a/√Δt.</li>
-</ol>
-<h3>Where the √t comes from, in one line</h3>
-<p>E[x²] = Σ E[Δx<sub>i</sub>²] + Σ<sub>i≠j</sub> E[Δx<sub>i</sub>]E[Δx<sub>j</sub>] = n a² + 0, and n = t/Δt, so the standard deviation is √(t a²/Δt) = (a/√Δt)√t.</p>
-<p><b>Note for later.</b> The constant a²/(2Δt) is called the diffusion coefficient D, and the result reads Var[x] = 2Dt. With a = 1 µm and Δt = 1 ms, D = 500 µm²/s, the same order as small molecules in water (roughly 500 to 2000 µm²/s).</p>
-</div>`,
-2:`<div class="cols">
-<h3>What this tab shows</h3>
-<p>The ink drop of the first slide, seen from above. Every molecule starts at the centre and takes a random step of size a every Δt. The orange circle has a radius equal to the measured spread, the root mean square distance of the molecules from the start. The dashed circle has the radius the lecture predicts. The bar marked d is the diameter of the orange circle, the d of the ink drop slide. The blue line is the path of one molecule.</p>
-<h3>What to look for</h3>
-<ol>
-<li>The cloud stays round and centred: E[x] = E[y] = 0.</li>
-<li>Watch d. Early on it grows quickly, later more and more slowly: d grows as √t. Press A, B, C or D above the spread plot to test the four curves of the ink drop slide against the data.</li>
-<li>With the default rule, x and y are two independent copies of the 1D walk, so Var[x] = Var[y] = n a² and E[r²] = 2 n a² = 2 t a²/Δt.</li>
-<li>Choose "Concentration" under Display. The colour shows the number of molecules per area: high at the centre, low at the edge. Diffusion moves molecules from high to low concentration.</li>
-<li>Set N = 1 and follow the blue path. It loops back over itself many times, which is why the distance grows so slowly.</li>
-<li>To spread twice as far takes four times as long, because the spread grows as √t.</li>
-</ol>
-${RULE_TEXT(2)}
-</div>`,
-3:`<div class="cols">
-<h3>What this tab shows</h3>
-<p>Molecules spreading from a point in three dimensions, as an ink drop does in a beaker. Drag the picture to turn it. The orange sphere has a radius equal to the measured spread, the root mean square distance from the start; the dashed sphere has the radius the lecture predicts. The blue line is the path of one molecule.</p>
-<h3>What to look for</h3>
-<ol>
-<li>With the default rule, x, y and z are three independent copies of the 1D walk. Each has Var = n a², so E[r²] = 3 n a² = 3 t a²/Δt, and the spread is √3 (a/√Δt)√t.</li>
-<li>Compare the three tabs with the same a and Δt and the default rule. The variance of one coordinate is n a² in every tab; the mean squared distance from the start is n a², 2 n a² and 3 n a² in 1D, 2D and 3D, because each extra coordinate adds its own n a².</li>
-<li>The spread still grows as √t: press A, B, C or D above the spread plot to test the four curves of the ink drop slide.</li>
-<li>The concentration profile along x (bottom middle) is the same bell-shaped normal distribution as in 1D, with variance n a².</li>
-</ol>
-${RULE_TEXT(3)}
-</div>`
-};
-
-/* ---------- one tab ---------- */
-class Tab{
-  constructor(d){
-    this.d=d; this.playing=false; this.fits=new Set(); this.squared=false;
-    this.yaw=0.6; this.pitch=0.42; this.spin=true; this.dragging=false;
-    this.el=document.createElement('section'); this.el.className='tab'; this.el.dataset.d=d;
-    this.el.innerHTML=this.html();
-    document.getElementById('main').appendChild(this.el);
-    const q=s=>this.el.querySelector(s);
-    this.cv=q('.view canvas'); this.cvS=q('.cvSpread'); this.cvH=q('.cvHist'); this.cvM=q('.cvMean');
-    this.ui={play:q('.play'),step:q('.step'),reset:q('.reset'),speed:q('.speed'),N:q('.N'),a:q('.a'),dt:q('.dt'),nmax:q('.nmax'),
-      rule:q('.rule'),mode:q('.mode'),path:q('.path'),paths:q('.paths'),circles:q('.circles'),spin:q('.spin'),sq:q('.sq'),gaps:q('.gaps'),tbody:q('tbody')};
-    this.bind();
-    this.rebuild();
-  }
-  html(){
-    const d=this.d;
-    const nopts=NLIST.map(n=>`<option value="${n}"${n===NDEFAULT[d]?' selected':''}>${n}</option>`).join('');
-    const viewTitle={1:'Positions of the molecules against time',2:'The ink drop seen from above',3:'The ink drop in three dimensions (drag to turn)'}[d];
-    const extra = d===1 ? `
-      <label class="chk"><input type="checkbox" class="paths" checked> Show the paths of 25 molecules</label>
-      <label class="chk"><input type="checkbox" class="path" checked> Show one molecule's path in red</label>
-      <label class="chk"><input type="checkbox" class="circles" checked> Show the predicted spread (±σ and ±2σ)</label>`
-    : `
-      <label class="ctl">Step rule
-        <select class="rule">
-          <option value="axes">Each coordinate moves ±a (the lecture's rule on every axis)</option>
-          <option value="lattice">Move ±a along one randomly chosen axis</option>
-          <option value="angle">Move a distance a in a random direction</option>
-        </select></label>
-      ${d===2?`<label class="ctl">Display
-        <select class="mode"><option value="dots">Molecules as dots</option><option value="conc">Concentration (molecules per area)</option></select></label>`:''}
-      <label class="chk"><input type="checkbox" class="path" checked> Show the path of one molecule</label>
-      <label class="chk"><input type="checkbox" class="circles" checked> Show the measured and predicted spread</label>
-      ${d===3?'<label class="chk"><input type="checkbox" class="spin" checked> Turn the picture slowly</label>':''}`;
-    return `
-    <div class="card view"><h2>${viewTitle}</h2><canvas></canvas></div>
-    <div class="side">
-      <div class="card">
-        <div class="btnrow"><button class="play">▶ Play</button><button class="step">One step</button><button class="reset">Reset</button></div>
-        <label class="ctl">Speed (steps per frame) <span class="val sv"></span><input type="range" class="speed" min="1" max="20" value="2"></label>
-        <label class="ctl">Number of molecules, N<select class="N">${nopts}</select></label>
-        <label class="ctl">Step length a (µm) <span class="val av"></span><input type="range" class="a" min="0.5" max="3" step="0.5" value="1"></label>
-        <label class="ctl">Time step Δt (ms) <span class="val dv"></span><input type="range" class="dt" min="0.25" max="2" step="0.25" value="1"></label>
-        <label class="ctl"><span>Number of steps in the run, n<sub>max</sub></span>
-          <select class="nmax"><option>200</option><option selected>500</option><option>1000</option><option>2000</option></select></label>
-        ${extra}
-        <p class="cap">Changing N, a, Δt, the number of steps or the step rule starts a new run.${d>1?' Each dot is drawn up to half a step away from its true point, so that molecules sitting on the same lattice point do not hide each other; every number and plot uses the true positions.':''}</p>
-      </div>
-      <div class="card">
-        <h2>Simulation against the lecture's prediction</h2>
-        <table class="ro"><thead><tr><th>Quantity</th><th>Simulation</th><th>Lecture prediction</th></tr></thead><tbody></tbody></table>
-        <p class="cap">"Simulation" values are averages over the N molecules at the current time.</p>
-      </div>
-    </div>
-    <div class="plots">
-      <div class="card">
-        <h2>Spread against time</h2>
-        <div class="tools">Ink drop slide curves:
-          ${Object.keys(CANDS).map(k=>`<button data-c="${k}" style="color:${COL[k]}">${k}</button>`).join('')}
-          <label class="chk" style="margin:0 0 0 6px"><input type="checkbox" class="sq"> Show the mean squared distance instead</label>
-        </div>
-        <canvas class="cvSpread"></canvas>
-        <div class="gaps"></div>
-      </div>
-      <div class="card">
-        <h2>Concentration profile along x</h2>
-        <canvas class="cvHist"></canvas>
-        <p class="cap">Bars: number of molecules in each slice of x. Dashed curve: the normal distribution with mean 0 and the predicted variance.</p>
-      </div>
-      <div class="card">
-        <h2>Average position against time</h2>
-        <canvas class="cvMean"></canvas>
-        <p class="cap">The grey band is ±σ/√N, the distance by which an average over N molecules typically misses 0 by chance.</p>
-      </div>
-    </div>
-    <div class="card guide">${GUIDE[d]}</div>`;
+/* ---------- the explorable ---------- */
+const $=id=>document.getElementById(id);
+class App{
+  constructor(){
+    this.d=3; this.playing=false; this.fits=new Set(); this.squared=false;
+    this.yaw=0.6; this.pitch=0.42; this.dragging=false;
+    $('N').innerHTML=NLIST.map(n=>`<option value="${n}"${n===2000?' selected':''}>${n}</option>`).join('');
+    this.bind(); this.applyDim(); this.rebuild();
   }
   bind(){
-    const u=this.ui;
-    u.play.onclick=()=>this.togglePlay();
-    u.step.onclick=()=>{this.setPlaying(false); if(this.sim.n<this.sim.nmax){this.sim.stepOnce();} this.dirty=true;};
-    u.reset.onclick=()=>{this.rebuild();};
-    u.speed.oninput=()=>this.labels();
-    for(const k of ['N','a','dt','nmax','rule']) if(u[k]) u[k].addEventListener(u[k].tagName==='SELECT'?'change':'input',()=>this.rebuild());
-    for(const k of ['mode','path','paths','circles']) if(u[k]) u[k].addEventListener('change',()=>{this.dirty=true;});
-    if(u.spin) u.spin.addEventListener('change',()=>{this.spin=u.spin.checked;});
-    u.sq.addEventListener('change',()=>{this.squared=u.sq.checked; this.dirty=true;});
-    this.el.querySelectorAll('.tools button').forEach(b=>b.onclick=()=>{
+    $('play').onclick=()=>this.togglePlay();
+    $('step').onclick=()=>{this.setPlaying(false); if(this.sim.n<this.sim.nmax) this.sim.stepOnce(); this.dirty=true;};
+    $('reset').onclick=()=>this.rebuild();
+    $('speed').oninput=()=>this.labels();
+    for(const id of ['N','nmax','rule']) $(id).addEventListener('change',()=>this.rebuild());
+    for(const id of ['a','dt']) $(id).addEventListener('input',()=>this.rebuild());
+    $('dim').addEventListener('change',()=>{this.d=+$('dim').value; this.applyDim(); this.rebuild();});
+    for(const id of ['mode','path','paths','circles','spin']) $(id).addEventListener('change',()=>{this.dirty=true;});
+    $('sq').addEventListener('change',()=>{this.squared=$('sq').checked; this.dirty=true;});
+    document.querySelectorAll('.cands button').forEach(b=>b.onclick=()=>{
       const k=b.dataset.c; if(this.fits.has(k)) this.fits.delete(k); else this.fits.add(k);
-      b.style.background=this.fits.has(k)?COL[k]:'#fff'; b.style.color=this.fits.has(k)?'#fff':COL[k]; b.style.borderColor=COL[k];
-      this.dirty=true;
+      b.classList.toggle('on',this.fits.has(k)); this.dirty=true;
     });
-    if(this.d===3){
-      const cv=this.cv; let lx=0,ly=0;
-      cv.addEventListener('pointerdown',e=>{this.dragging=true; lx=e.clientX; ly=e.clientY; cv.setPointerCapture(e.pointerId);});
-      cv.addEventListener('pointermove',e=>{ if(!this.dragging) return;
-        this.yaw+=(e.clientX-lx)*0.01; this.pitch=Math.max(-1.45,Math.min(1.45,this.pitch+(e.clientY-ly)*0.01));
-        lx=e.clientX; ly=e.clientY; this.viewDirty=true;});
-      const up=()=>{this.dragging=false;};
-      cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
-    }
+    const cv=$('view'); let lx=0,ly=0;
+    cv.addEventListener('pointerdown',e=>{if(this.d!==3) return; this.dragging=true; lx=e.clientX; ly=e.clientY; cv.setPointerCapture(e.pointerId);});
+    cv.addEventListener('pointermove',e=>{if(!this.dragging) return; this.yaw+=(e.clientX-lx)*0.01; this.pitch=Math.max(-1.45,Math.min(1.45,this.pitch+(e.clientY-ly)*0.01)); lx=e.clientX; ly=e.clientY; this.viewDirty=true;});
+    const up=()=>{this.dragging=false;}; cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+    window.addEventListener('resize',()=>{this.dirty=true;});
+    XP.onTheme(()=>{this.dirty=true;});
+    document.addEventListener('keydown',e=>{
+      if(XP.panelOpen&&XP.panelOpen()) return;
+      const t=e.target; if(t.tagName==='SELECT'||(t.tagName==='INPUT'&&t.type!=='checkbox'&&t.type!=='range')) return;
+      if(e.code==='Space'){e.preventDefault(); this.togglePlay();}
+      else if(e.key==='s'||e.key==='S') $('step').click();
+      else if(e.key==='r'||e.key==='R') this.rebuild();
+    });
+    // so that Space never presses a focused button twice
+    document.addEventListener('click',e=>{const t=e.target; if(t.tagName==='BUTTON'||(t.tagName==='INPUT'&&t.type==='checkbox')) setTimeout(()=>t.blur(),0);});
   }
-  labels(){
-    const u=this.ui, q=s=>this.el.querySelector(s);
-    q('.sv').textContent=u.speed.value; q('.av').textContent=u.a.value; q('.dv').textContent=u.dt.value;
+  applyDim(){
+    document.querySelectorAll('[data-dims]').forEach(el=>{el.style.display=el.dataset.dims.includes(String(this.d))?'':'none';});
+    $('viewTitle').textContent=VIEW_TITLE[this.d];
   }
+  labels(){$('speedV').textContent=$('speed').value; $('aV').textContent=$('a').value; $('dtV').textContent=$('dt').value;}
   rebuild(){
-    const u=this.ui;
     this.labels();
-    this.sim=new Walk(this.d,{N:+u.N.value,a:+u.a.value,dt:+u.dt.value,nmax:+u.nmax.value,rule:u.rule?u.rule.value:'axes'});
+    this.sim=new Walk(this.d,{N:+$('N').value,a:+$('a').value,dt:+$('dt').value,nmax:+$('nmax').value,rule:$('rule').value});
     const S=this.sim;
-    // half-width of the view, in µm: about 3 standard deviations of one coordinate at the end of the run
-    this.W=(this.d===3?2.7:3.2)*S.a*Math.sqrt(S.pc*S.nmax);
-    this.buildTable();
-    this.dirty=true;
+    this.W=(this.d===3?2.7:3.2)*S.a*Math.sqrt(S.pc*S.nmax);   // half-width of the view in µm
+    this.buildTable(); this.dirty=true;
   }
-  setPlaying(p){this.playing=p; this.ui.play.textContent=p?'❚❚ Pause':'▶ Play';}
-  togglePlay(){
-    if(!this.playing && this.sim.n>=this.sim.nmax) this.rebuild();
-    this.setPlaying(!this.playing);
-  }
+  setPlaying(p){this.playing=p; $('play').textContent=p?'❚❚ Pause':'▶ Play';}
+  togglePlay(){if(!this.playing&&this.sim.n>=this.sim.nmax) this.rebuild(); this.setPlaying(!this.playing);}
   frame(){
     if(this.playing){
-      const sp=+this.ui.speed.value;
-      for(let s=0;s<sp;s++){ if(this.sim.n>=this.sim.nmax){this.setPlaying(false);break;} this.sim.stepOnce(); }
+      const sp=+$('speed').value;
+      for(let s=0;s<sp;s++){if(this.sim.n>=this.sim.nmax){this.setPlaying(false);break;} this.sim.stepOnce();}
       this.dirty=true;
     }
-    if(this.d===3 && this.spin && !this.dragging){ this.yaw+=0.004; this.viewDirty=true; }
-    if(this.dirty){ this.drawAll(); this.dirty=false; this.viewDirty=false; }
-    else if(this.viewDirty){ this.drawView(); this.viewDirty=false; }
+    if(this.d===3&&$('spin').checked&&!this.dragging){this.yaw+=0.004; this.viewDirty=true;}
+    if(this.dirty){this.drawAll(); this.dirty=false; this.viewDirty=false;}
+    else if(this.viewDirty){this.drawView(); this.viewDirty=false;}
   }
-  drawAll(){ this.drawView(); this.drawSpread(); this.drawHist(); this.drawMean(); this.updateTable(); }
-  drawView(){ if(this.d===1) this.view1D(); else if(this.d===2) this.view2D(); else this.view3D(); }
+  drawAll(){
+    const S=this.sim; $('status').textContent=`t = ${fmt(S.n*S.dt)} ms   n = ${S.n} of ${S.nmax}`;
+    this.drawView(); this.drawSpread(); this.drawHist(); this.drawMean(); this.updateTable();
+  }
+  drawView(){if(this.d===1) this.view1D(); else if(this.d===2) this.view2D(); else this.view3D();}
 
-  /* ---- readout table ---- */
+  /* ---- numbers table ---- */
   buildTable(){
     const d=this.d, rows=[];
-    rows.push(['n','Steps taken, n']);
-    rows.push(['t','Time, t = nΔt (ms)']);
     for(let c=0;c<d;c++) rows.push(['m'+c,`Average position E[${CN[c]}] (µm)`]);
     for(let c=0;c<d;c++) rows.push(['v'+c,`Variance Var[${CN[c]}] (µm²)`]);
     rows.push(['dx2','Average of Δx² for the latest step (µm²)']);
@@ -451,16 +339,12 @@ class Tab{
     rows.push(['msd',d===1?'Mean squared distance E[x²] (µm²)':'Mean squared distance E[r²] (µm²)']);
     rows.push(['rms','Spread: root mean square distance from the start (µm)']);
     rows.push(['D','Diffusion coefficient D = Var[x]/(2t) (µm²/s)']);
-    this.ui.tbody.innerHTML=rows.map(([id,lab])=>`<tr><td>${lab}</td><td class="s_${id}"></td><td class="p_${id}"></td></tr>`).join('');
-    this.cells={};
-    for(const [id] of rows) this.cells[id]=[this.ui.tbody.querySelector('.s_'+id),this.ui.tbody.querySelector('.p_'+id)];
+    $('ro').innerHTML=rows.map(([id,lab])=>`<tr><td>${lab}</td><td id="s_${id}"></td><td id="p_${id}"></td></tr>`).join('');
   }
   updateTable(){
-    const S=this.sim, st=S.stats, n=S.n, a=S.a, d=this.d, k=S.k, pc=S.pc, C=this.cells;
-    const set=(id,s,p)=>{C[id][0].textContent=s; C[id][1].textContent=p;};
+    const S=this.sim, st=S.stats, n=S.n, a=S.a, d=this.d, k=S.k, pc=S.pc;
+    const set=(id,s,p)=>{$('s_'+id).textContent=s; $('p_'+id).textContent=p;};
     const pcTxt=pc===1?'n a²':`n a²/${d}`;
-    set('n',String(n),'');
-    set('t',fmt(n*S.dt),'');
     for(let c=0;c<d;c++) set('m'+c,fmt(st.mean[c]),'0');
     for(let c=0;c<d;c++) set('v'+c,fmt(st.v[c]),`${pcTxt} = ${fmt(pc*n*a*a)}`);
     set('dx2',n?fmt(st.dx2):'-',`${pc===1?'a²':'a²/'+d} = ${fmt(pc*a*a)}`);
@@ -470,18 +354,16 @@ class Tab{
     set('D',n?fmt(st.v[0]/(2*n*S.dt)*1000):'-',`${pc===1?'a²/(2Δt)':`a²/(${2*d}Δt)`} = ${fmt(pc*a*a/(2*S.dt)*1000)}`);
   }
 
-  /* ---- spread plot with the four candidate curves ---- */
+  /* ---- spread plot and the four candidate curves ---- */
   drawSpread(){
-    const S=this.sim, H=S.hist, k=S.k, a=S.a, dt=S.dt, tmax=S.nmax*dt, sq=this.squared;
+    const P=XP.palette(), S=this.sim, H=S.hist, k=S.k, a=S.a, dt=S.dt, tmax=S.nmax*dt, sq=this.squared;
     const ys=sq?H.msd:H.rms;
-    const th=t=>sq? k*t*a*a/dt : Math.sqrt(k*t/dt)*a;
-    const tt=[],ty=[];
-    for(let i=0;i<=200;i++){const t=tmax*i/200; tt.push(t); ty.push(th(t));}
-    let ymax=th(tmax); for(const y of ys) if(y>ymax) ymax=y;
-    ymax*=1.15;
+    const th=t=>sq?k*t*a*a/dt:Math.sqrt(k*t/dt)*a;
+    const tt=[],ty=[]; for(let i=0;i<=200;i++){const t=tmax*i/200; tt.push(t); ty.push(th(t));}
+    let ymax=th(tmax); for(const y of ys) if(y>ymax) ymax=y; ymax*=1.15;
     const series=[
-      {xs:tt,ys:ty,color:COL.theory,dash:[6,5],width:1.8,label:sq?`lecture: ${k===1?'':k+' '}t a²/Δt`:`lecture: ${k===1?'':'√'+k+' '}(a/√Δt)√t`},
-      {xs:H.t,ys:ys,color:COL.meas,width:2.6,label:sq?'simulation: mean squared distance':'simulation: measured spread'}
+      {xs:tt,ys:ty,color:P.theory,dash:[6,5],width:1.8,label:sq?`prediction: ${k===1?'':k+' '}t a²/Δt`:`prediction: ${k===1?'':'√'+k+' '}(a/√Δt)√t`},
+      {xs:H.t,ys,color:P.measured,width:2.6,label:sq?'simulation: mean squared distance':'simulation: spread'}
     ];
     const gaps=[];
     if(S.n>=5){
@@ -490,284 +372,211 @@ class Tab{
       for(const key of ['A','B','C','D']){
         if(!this.fits.has(key)) continue;
         const r=fitCurve(key,ft,fy); if(!r) continue;
-        const xs=[],yy=[];
-        for(let i=0;i<=200;i++){const t=tmax*i/200; xs.push(t); yy.push(r.c*r.f(t));}
+        const xs=[],yy=[]; for(let i=0;i<=200;i++){const t=tmax*i/200; xs.push(t); yy.push(r.c*r.f(t));}
         const name=(sq?CANDS[key].name.replace('d ∝','d² ∝'):CANDS[key].name)+(key==='C'?` (τ = ${fmt(r.tau)} ms)`:'');
-        series.push({xs,ys:yy,color:COL[key],width:2,dash:[2,3],label:name});
-        gaps.push(`<b style="color:${COL[key]}">${key}</b>: ${fmt(r.gap)} ${sq?'µm²':'µm'}`);
+        series.push({xs,ys:yy,color:P[CANDS[key].col],width:2,dash:[2,3],label:name});
+        gaps.push(`<b style="color:${P[CANDS[key].col]}">${key}</b> ${fmt(r.gap)} ${sq?'µm²':'µm'}`);
       }
     }
-    drawPlot(this.cvS,{xmin:0,xmax:tmax,ymin:0,ymax,xlabel:'time t (ms)',ylabel:sq?'mean squared distance (µm²)':'spread (µm)',series});
-    this.ui.gaps.innerHTML = gaps.length? 'Average gap between each fitted curve and the data so far: '+gaps.join(', ') : (this.fits.size&&S.n<5? 'Run a few steps to fit the curves.' : 'Press A, B, C or D to fit that curve from the ink drop slide to the data.');
+    XP.plot($('cvS'),{xmin:0,xmax:tmax,ymin:0,ymax,xlabel:'time t (ms)',ylabel:sq?'mean squared distance (µm²)':'spread (µm)',series});
+    $('gaps').innerHTML=gaps.length?'Average gap between each curve and the data: '+gaps.join(', ')
+      :(this.fits.size&&S.n<5?'Run a few steps to fit the curves.':'A: d ∝ t, B: d ∝ t², C: d ∝ 1 − e^(−t/τ), D: d ∝ √t. Press one to fit it to the data.');
   }
 
   /* ---- concentration profile ---- */
   drawHist(){
-    const S=this.sim, d=this.d, W=this.W, a=S.a, N=S.N, p=S.pos;
-    const lattice=S.rule!=='angle';
-    let bw=2*W/44;
-    if(lattice) bw=2*a*Math.max(1,Math.round(bw/(2*a)));
+    const P=XP.palette(), S=this.sim, d=this.d, W=this.W, a=S.a, N=S.N, p=S.pos, lattice=S.rule!=='angle';
+    let bw=2*W/44; if(lattice) bw=2*a*Math.max(1,Math.round(bw/(2*a)));
     const K=Math.ceil(W/bw), nb=2*K+1, cnt=new Float64Array(nb);
     for(let i=0;i<N;i++){
       const f=p[i*d]/bw+0.5, r=Math.round(f);
-      if(lattice && Math.abs(f-r)<1e-7){ // value sits exactly on a bin edge: share it between the two bins
-        const j0=r-1+K, j1=r+K;
-        if(j0>=0&&j0<nb) cnt[j0]+=0.5; if(j1>=0&&j1<nb) cnt[j1]+=0.5;
-      }else{ const j=Math.floor(f)+K; if(j>=0&&j<nb) cnt[j]+=1; }
+      if(lattice&&Math.abs(f-r)<1e-7){const j0=r-1+K,j1=r+K; if(j0>=0&&j0<nb) cnt[j0]+=0.5; if(j1>=0&&j1<nb) cnt[j1]+=0.5;}
+      else{const j=Math.floor(f)+K; if(j>=0&&j<nb) cnt[j]+=1;}
     }
     const x0=[],x1=[],y=[]; let cmax=1;
     for(let j=0;j<nb;j++){const c=(j-K)*bw; x0.push(c-bw/2); x1.push(c+bw/2); y.push(cnt[j]); if(cnt[j]>cmax) cmax=cnt[j];}
-    const series=[];
-    const v=S.pc*S.n*a*a;
+    const series=[], v=S.pc*S.n*a*a;
     if(S.n>0){
       const sd=Math.sqrt(v), gx=[],gy=[];
       for(let i=0;i<=300;i++){const x=-W+2*W*i/300; gx.push(x); gy.push(N*bw*Math.exp(-x*x/(2*v))/(sd*Math.sqrt(2*Math.PI)));}
       const gmax=N*bw/(sd*Math.sqrt(2*Math.PI)); if(gmax>cmax) cmax=Math.min(gmax,N);
-      series.push({xs:gx,ys:gy,color:COL.theory,dash:[6,5],width:1.8,label:`normal, variance ${S.pc===1?'n a²':'n a²/'+d}`});
+      series.push({xs:gx,ys:gy,color:P.theory,dash:[6,5],width:1.8,label:`prediction: normal, variance ${S.pc===1?'n a²':'n a²/'+d}`});
     }
-    drawPlot(this.cvH,{xmin:-W,xmax:W,ymin:0,ymax:cmax*1.15,xlabel:'position x (µm)',ylabel:'number of molecules',
-      bars:{x0,x1,y,fill:'rgba(214,39,40,0.28)',stroke:'rgba(214,39,40,0.85)',label:'simulation'},series,legendRight:true});
+    XP.plot($('cvH'),{xmin:-W,xmax:W,ymin:0,ymax:cmax*1.15,xlabel:'position x (µm)',ylabel:'molecules',
+      bars:{x0,x1,y,fill:rgba(P.particle,.28),stroke:rgba(P.particle,.85),label:'simulation: molecules in each slice'},series});
   }
 
-  /* ---- mean position ---- */
+  /* ---- average position ---- */
   drawMean(){
-    const S=this.sim, H=S.hist, d=this.d, tmax=S.nmax*S.dt, a=S.a, N=S.N;
+    const P=XP.palette(), S=this.sim, H=S.hist, d=this.d, tmax=S.nmax*S.dt, a=S.a, N=S.N;
     const se=t=>a*Math.sqrt(S.pc*t/S.dt/N);
-    const bx=[],lo=[],hi=[];
-    for(let i=0;i<=120;i++){const t=tmax*i/120; bx.push(t); hi.push(se(t)); lo.push(-se(t));}
-    let ym=3*se(tmax);
-    for(let c=0;c<d;c++) for(const v of H.mean[c]) if(Math.abs(v)*1.1>ym) ym=Math.abs(v)*1.1;
-    const series=[{xs:[0,tmax],ys:[0,0],color:COL.theory,dash:[6,5],width:1.5,label:'lecture: E[x] = 0'}];
-    for(let c=0;c<d;c++) series.push({xs:H.t,ys:H.mean[c],color:COL.coord[c],width:2,label:`simulation: average ${CN[c]}`});
-    drawPlot(this.cvM,{xmin:0,xmax:tmax,ymin:-ym,ymax:ym,xlabel:'time t (ms)',ylabel:'average position (µm)',series,
-      band:{xs:bx,lo,hi,fill:'rgba(120,130,150,0.18)',label:'±σ/√N'}});
+    const bx=[],lo=[],hi=[]; for(let i=0;i<=120;i++){const t=tmax*i/120; bx.push(t); hi.push(se(t)); lo.push(-se(t));}
+    let ym=3*se(tmax); for(let c=0;c<d;c++) for(const v of H.mean[c]) if(Math.abs(v)*1.1>ym) ym=Math.abs(v)*1.1;
+    const cc=[P.c1,P.c2,P.c3];
+    const series=[{xs:[0,tmax],ys:[0,0],color:P.theory,dash:[6,5],width:1.5,label:'prediction: 0'}];
+    for(let c=0;c<d;c++) series.push({xs:H.t,ys:H.mean[c],color:cc[c],width:2,label:`average ${CN[c]}`});
+    XP.plot($('cvM'),{xmin:0,xmax:tmax,ymin:-ym,ymax:ym,xlabel:'time t (ms)',ylabel:'average position (µm)',series,
+      band:{xs:bx,lo,hi,fill:P.band,label:'chance variation ±σ/√N'}});
   }
 
-  /* ---- 1D view: x against t, as on the lecture slide ---- */
-  view1D(){
-    const g=setup(this.cv); if(!g) return; const {ctx,w,h}=g;
-    const S=this.sim, W=this.W, dt=S.dt, tmax=S.nmax*dt, a=S.a, u=this.ui;
-    ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
-    const stripW=Math.max(90,w*0.16), m={l:60,r:12,t:30,b:42};
-    const pw=w-m.l-m.r-stripW-16, ph=h-m.t-m.b;
-    const X=t=>m.l+t/tmax*pw, Y=x=>m.t+ph/2-x/W*(ph/2);
-    // grid
-    ctx.font='12px '+FONT; ctx.strokeStyle='#e8ebf0'; ctx.fillStyle='#5b6577'; ctx.lineWidth=1;
-    const xs=niceStep(tmax,Math.max(3,Math.min(8,Math.floor(pw/60)))), ys=niceStep(2*W,8);
-    ctx.textAlign='center'; ctx.textBaseline='top';
-    for(let v=0; v<=tmax+1e-9; v+=xs){const px=X(v); ctx.beginPath(); ctx.moveTo(px,m.t); ctx.lineTo(px,m.t+ph); ctx.stroke(); ctx.fillText(tick(v,xs),px,m.t+ph+4);}
-    ctx.textAlign='right'; ctx.textBaseline='middle';
-    for(let v=Math.ceil(-W/ys)*ys; v<=W+1e-9; v+=ys){const py=Y(v); ctx.beginPath(); ctx.moveTo(m.l,py); ctx.lineTo(m.l+pw,py); ctx.stroke(); ctx.fillText(tick(v,ys),m.l-5,py);}
-    ctx.strokeStyle='#9aa3b2'; ctx.beginPath(); ctx.moveTo(m.l,Y(0)); ctx.lineTo(m.l+pw,Y(0)); ctx.stroke();
-    ctx.strokeRect(m.l+0.5,m.t+0.5,pw,ph);
-    ctx.fillStyle='#1b2230'; ctx.font='13px '+FONT; ctx.textAlign='center'; ctx.textBaseline='bottom';
-    ctx.fillText('time t = nΔt (ms)',m.l+pw/2,h-3);
-    ctx.save(); ctx.translate(14,m.t+ph/2); ctx.rotate(-Math.PI/2); ctx.textBaseline='middle'; ctx.fillText('position x (µm)',0,0); ctx.restore();
+  /* the key above the 2D and 3D pictures */
+  key(ctx,P,x,y){
+    ctx.font='12px '+P.font; ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.strokeStyle=P.measured; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+20,y); ctx.stroke();
+    ctx.fillStyle=P.text; ctx.fillText('measured spread',x+26,y); x+=26+ctx.measureText('measured spread').width+16;
+    ctx.strokeStyle=P.theory; ctx.lineWidth=1.8; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+20,y); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillText('predicted spread',x+26,y);
+  }
 
+  /* ---- 1D: x against t ---- */
+  view1D(){
+    const g=setup($('view')); if(!g) return; const {ctx,w,h}=g, P=XP.palette(), F=P.font;
+    const S=this.sim, W=this.W, dt=S.dt, tmax=S.nmax*dt, a=S.a;
+    ctx.fillStyle=P.bg; ctx.fillRect(0,0,w,h);
+    const stripW=Math.max(70,w*0.16), m={l:56,r:8,t:24,b:38};
+    const pw=w-m.l-m.r-stripW-14, ph=h-m.t-m.b; if(pw<40||ph<40) return;
+    const X=t=>m.l+t/tmax*pw, Y=x=>m.t+ph/2-x/W*(ph/2);
+    ctx.font='11.5px '+F; ctx.strokeStyle=P.grid; ctx.fillStyle=P.muted; ctx.lineWidth=1;
+    const xs=niceStep(tmax,Math.max(3,Math.min(8,Math.floor(pw/60)))), ys=niceStep(2*W,Math.max(4,Math.min(8,Math.floor(ph/40))));
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    for(let v=0;v<=tmax+1e-9;v+=xs){const px=X(v); ctx.beginPath(); ctx.moveTo(px,m.t); ctx.lineTo(px,m.t+ph); ctx.stroke(); ctx.fillText(tick(v,xs),px,m.t+ph+4);}
+    ctx.textAlign='right'; ctx.textBaseline='middle';
+    for(let v=Math.ceil(-W/ys)*ys;v<=W+1e-9;v+=ys){const py=Y(v); ctx.beginPath(); ctx.moveTo(m.l,py); ctx.lineTo(m.l+pw,py); ctx.stroke(); ctx.fillText(tick(v,ys),m.l-5,py);}
+    ctx.strokeStyle=P.axis; ctx.beginPath(); ctx.moveTo(m.l,Y(0)); ctx.lineTo(m.l+pw,Y(0)); ctx.stroke(); ctx.strokeRect(m.l+.5,m.t+.5,pw,ph);
+    ctx.fillStyle=P.text; ctx.font='12.5px '+F; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('time t = nΔt (ms)',m.l+pw/2,h-2);
+    ctx.save(); ctx.translate(12,m.t+ph/2); ctx.rotate(-Math.PI/2); ctx.textBaseline='middle'; ctx.fillText('position x (µm)',0,0); ctx.restore();
     ctx.save(); ctx.beginPath(); ctx.rect(m.l,m.t,pw,ph); ctx.clip();
-    // predicted envelope
-    if(u.circles.checked){
-      for(const [mult,col] of [[1,'#111'],[2,'#8a93a3']]) for(const sgn of [1,-1]){
+    const circles=$('circles').checked;
+    if(circles){
+      for(const [mult,col] of [[1,P.theory],[2,P.axis]]) for(const sgn of [1,-1]){
         ctx.strokeStyle=col; ctx.lineWidth=1.6; ctx.setLineDash([6,5]); ctx.beginPath();
         for(let i=0;i<=200;i++){const t=tmax*i/200, x=sgn*mult*a*Math.sqrt(t/dt); i?ctx.lineTo(X(t),Y(x)):ctx.moveTo(X(t),Y(x));}
         ctx.stroke();
       }
       ctx.setLineDash([]);
     }
-    const stair=(arr)=>{ctx.beginPath(); ctx.moveTo(X(0),Y(arr[0])); for(let k=0;k<arr.length-1;k++){const tx=X((k+1)*dt); ctx.lineTo(tx,Y(arr[k])); ctx.lineTo(tx,Y(arr[k+1]));} ctx.stroke();};
-    if(u.paths.checked){ ctx.strokeStyle='rgba(70,80,100,0.33)'; ctx.lineWidth=1; for(let k=1;k<S.M;k++) stair(S.traj[k]); }
-    if(u.path.checked){ ctx.strokeStyle='#d62728'; ctx.lineWidth=2.6; stair(S.traj[0]); }
-    const tn=S.n*dt; ctx.strokeStyle='rgba(31,95,191,0.5)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(X(tn),m.t); ctx.lineTo(X(tn),m.t+ph); ctx.stroke();
+    const stair=arr=>{ctx.beginPath(); ctx.moveTo(X(0),Y(arr[0])); for(let k=0;k<arr.length-1;k++){const tx=X((k+1)*dt); ctx.lineTo(tx,Y(arr[k])); ctx.lineTo(tx,Y(arr[k+1]));} ctx.stroke();};
+    if($('paths').checked){ctx.strokeStyle='rgba(128,138,155,0.38)'; ctx.lineWidth=1; for(let k=1;k<S.M;k++) stair(S.traj[k]);}
+    if($('path').checked){ctx.strokeStyle=rgba(P.particle,1); ctx.lineWidth=2.6; stair(S.traj[0]);}
+    const tn=S.n*dt; ctx.strokeStyle=P.path; ctx.globalAlpha=.6; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(X(tn),m.t); ctx.lineTo(X(tn),m.t+ph); ctx.stroke(); ctx.globalAlpha=1;
     ctx.restore();
-    if(u.circles.checked){
-      ctx.font='12px '+FONT; ctx.textAlign='right'; ctx.textBaseline='bottom';
-      const s1=a*Math.sqrt(S.nmax);
-      ctx.fillStyle='#111'; ctx.fillText('+σ = a√n',m.l+pw-4,Y(s1)-2); ctx.textBaseline='top'; ctx.fillText('−σ',m.l+pw-4,Y(-s1)+2);
-      ctx.fillStyle='#6b7383'; ctx.textBaseline='bottom'; ctx.fillText('+2σ',m.l+pw-4,Y(2*s1)-2);
+    if(circles){
+      const s1=a*Math.sqrt(S.nmax); ctx.font='12px '+F; ctx.textAlign='right';
+      ctx.fillStyle=P.theory; ctx.textBaseline='bottom'; ctx.fillText('+σ = a√n',m.l+pw-4,Y(s1)-2); ctx.textBaseline='top'; ctx.fillText('−σ',m.l+pw-4,Y(-s1)+2);
+      ctx.fillStyle=P.muted; ctx.textBaseline='bottom'; ctx.fillText('+2σ',m.l+pw-4,Y(2*s1)-2);
     }
-    // strip with every molecule at the current time
-    const sx=m.l+pw+16;
-    ctx.fillStyle='#eaf4fb'; ctx.fillRect(sx,m.t,stripW,ph); ctx.strokeStyle='#9aa3b2'; ctx.strokeRect(sx+0.5,m.t+0.5,stripW,ph);
-    const N=S.N, rad=N<=10?4:N<=200?2.6:N<=1000?1.8:1.3;
-    ctx.fillStyle=N<=200?'rgba(214,39,40,0.9)':'rgba(214,39,40,0.55)';
+    const sx=m.l+pw+14, N=S.N;
+    ctx.fillStyle=P.field; ctx.fillRect(sx,m.t,stripW,ph); ctx.strokeStyle=P.axis; ctx.strokeRect(sx+.5,m.t+.5,stripW,ph);
+    const rad=N<=10?4:N<=200?2.6:N<=1000?1.8:1.3;
+    ctx.fillStyle=rgba(P.particle,N<=200?.9:.55);
     for(let i=0;i<N;i++){const py=Y(S.pos[i]); if(py<m.t||py>m.t+ph) continue; ctx.fillRect(sx+5+S.jit[i]*(stripW-10)-rad,py-rad,2*rad,2*rad);}
-    if(u.circles.checked && S.n>0){
-      const sd=a*Math.sqrt(S.n); ctx.strokeStyle='#111'; ctx.setLineDash([5,4]); ctx.lineWidth=1.5;
+    if(circles&&S.n>0){
+      const sd=a*Math.sqrt(S.n); ctx.strokeStyle=P.theory; ctx.setLineDash([5,4]); ctx.lineWidth=1.5;
       for(const s of [sd,-sd]){ctx.beginPath(); ctx.moveTo(sx,Y(s)); ctx.lineTo(sx+stripW,Y(s)); ctx.stroke();}
-      ctx.setLineDash([]); ctx.strokeStyle=COL.meas; ctx.lineWidth=2.2; const ms=Math.sqrt(S.stats.v[0]), mu=S.stats.mean[0];
+      ctx.setLineDash([]); ctx.strokeStyle=P.measured; ctx.lineWidth=2.2; const ms=Math.sqrt(S.stats.v[0]), mu=S.stats.mean[0];
       for(const s of [mu+ms,mu-ms]){ctx.beginPath(); ctx.moveTo(sx,Y(s)); ctx.lineTo(sx+stripW,Y(s)); ctx.stroke();}
     }
-    ctx.fillStyle='#1b2230'; ctx.font='12px '+FONT; ctx.textAlign='center'; ctx.textBaseline='bottom';
-    const narrow=w<600;
-    ctx.fillText(narrow?'all now':`all ${N} molecules now`,sx+stripW/2,m.t-4);
-    ctx.font=(narrow?'bold 13px ':'bold 15px ')+FONT; ctx.textAlign='left'; ctx.fillText(`t = ${fmt(tn)} ms    n = ${S.n}`,m.l,m.t-6);
+    ctx.fillStyle=P.text; ctx.font='12px '+F; ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.fillText(w<600?'now':`all ${N} molecules now`,sx+stripW/2,m.t-5);
   }
 
-  /* ---- 2D view: the ink drop from above ---- */
+  /* ---- 2D: from above ---- */
   view2D(){
-    const g=setup(this.cv); if(!g) return; const {ctx,w,h}=g;
-    const S=this.sim, W=this.W, u=this.ui, N=S.N, p=S.pos;
-    ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
-    const top=w<600?44:26;
-    const size=Math.min(w,h-top), ox=(w-size)/2, oy=top+(h-top-size)/2, sc=size/(2*W), cx=ox+size/2, cy=oy+size/2;
+    const g=setup($('view')); if(!g) return; const {ctx,w,h}=g, P=XP.palette(), F=P.font;
+    const S=this.sim, W=this.W, N=S.N, p=S.pos;
+    ctx.fillStyle=P.bg; ctx.fillRect(0,0,w,h);
+    const top=22, size=Math.min(w,h-top), ox=(w-size)/2, oy=top+(h-top-size)/2, sc=size/(2*W), cx=ox+size/2, cy=oy+size/2;
     const PX=x=>cx+x*sc, PY=y=>cy-y*sc;
-    ctx.fillStyle='#eaf4fb'; ctx.fillRect(ox,oy,size,size);
-    ctx.strokeStyle='#d5e3ee'; ctx.lineWidth=1;
+    ctx.fillStyle=P.field; ctx.fillRect(ox,oy,size,size);
+    ctx.strokeStyle=P.fieldGrid; ctx.lineWidth=1;
     const gs=niceStep(2*W,8);
-    for(let v=Math.ceil(-W/gs)*gs; v<=W; v+=gs){ctx.beginPath(); ctx.moveTo(PX(v),oy); ctx.lineTo(PX(v),oy+size); ctx.moveTo(ox,PY(v)); ctx.lineTo(ox+size,PY(v)); ctx.stroke();}
+    for(let v=Math.ceil(-W/gs)*gs;v<=W;v+=gs){ctx.beginPath(); ctx.moveTo(PX(v),oy); ctx.lineTo(PX(v),oy+size); ctx.moveTo(ox,PY(v)); ctx.lineTo(ox+size,PY(v)); ctx.stroke();}
     ctx.save(); ctx.beginPath(); ctx.rect(ox,oy,size,size); ctx.clip();
-    if(u.mode.value==='conc'){
+    if($('mode').value==='conc'){
       const G=48, cell=2*W/G, cnt=new Float32Array(G*G); let mx=0;
       for(let i=0;i<N;i++){const gx=Math.floor((p[2*i]+W)/cell), gy=Math.floor((p[2*i+1]+W)/cell); if(gx<0||gy<0||gx>=G||gy>=G) continue; const v=++cnt[gy*G+gx]; if(v>mx) mx=v;}
       const cpx=size/G;
-      for(let j=0;j<G;j++) for(let i=0;i<G;i++){const v=cnt[j*G+i]; if(!v) continue; ctx.fillStyle=`rgba(200,16,46,${Math.pow(v/mx,0.6).toFixed(3)})`; ctx.fillRect(ox+i*cpx,oy+size-(j+1)*cpx,cpx+0.5,cpx+0.5);}
+      for(let j=0;j<G;j++) for(let i=0;i<G;i++){const v=cnt[j*G+i]; if(!v) continue; ctx.fillStyle=rgba(P.particle,Math.pow(v/mx,0.6).toFixed(3)); ctx.fillRect(ox+i*cpx,oy+size-(j+1)*cpx,cpx+.5,cpx+.5);}
     }else{
-      const rad=N<=10?5:N<=200?3:N<=1000?2.2:1.6;
-      ctx.fillStyle=N<=200?'rgba(214,39,40,0.9)':'rgba(214,39,40,0.6)';
-      const of=S.off;
+      const rad=N<=10?5:N<=200?3:N<=1000?2.2:1.6, of=S.off;
+      ctx.fillStyle=rgba(P.particle,N<=200?.9:.62);
       for(let i=0;i<N;i++) ctx.fillRect(PX(p[2*i]+of[2*i])-rad,PY(p[2*i+1]+of[2*i+1])-rad,2*rad,2*rad);
     }
-    if(u.path.checked && S.trail.length>1){
-      ctx.strokeStyle=COL.path; ctx.lineWidth=1.6; ctx.beginPath();
+    if($('path').checked&&S.trail.length>1){
+      ctx.strokeStyle=P.path; ctx.lineWidth=1.6; ctx.beginPath();
       S.trail.forEach((q,i)=>{i?ctx.lineTo(PX(q[0]),PY(q[1])):ctx.moveTo(PX(q[0]),PY(q[1]));}); ctx.stroke();
-      const q=S.trail[S.trail.length-1]; ctx.fillStyle=COL.path; ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+      const q=S.trail[S.trail.length-1]; ctx.fillStyle=P.path; ctx.strokeStyle=P.bg; ctx.lineWidth=2;
       ctx.beginPath(); ctx.arc(PX(q[0]),PY(q[1]),6,0,2*Math.PI); ctx.fill(); ctx.stroke();
     }
-    if(u.circles.checked && S.n>0){
+    if($('circles').checked&&S.n>0){
       const Rt=Math.sqrt(S.k*S.n)*S.a*sc, Rm=S.stats.rms*sc;
-      ctx.strokeStyle='#111'; ctx.lineWidth=1.8; ctx.setLineDash([7,5]); ctx.beginPath(); ctx.arc(cx,cy,Rt,0,2*Math.PI); ctx.stroke();
-      ctx.setLineDash([]); ctx.strokeStyle=COL.meas; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(cx,cy,Rm,0,2*Math.PI); ctx.stroke();
-      // the diameter d of the ink drop slide
+      ctx.strokeStyle=P.theory; ctx.lineWidth=1.8; ctx.setLineDash([7,5]); ctx.beginPath(); ctx.arc(cx,cy,Rt,0,2*Math.PI); ctx.stroke();
+      ctx.setLineDash([]); ctx.strokeStyle=P.measured; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(cx,cy,Rm,0,2*Math.PI); ctx.stroke();
       const yb=cy-Rm-16;
-      ctx.strokeStyle='#111'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx-Rm,yb); ctx.lineTo(cx+Rm,yb); ctx.moveTo(cx-Rm,yb-6); ctx.lineTo(cx-Rm,yb+6); ctx.moveTo(cx+Rm,yb-6); ctx.lineTo(cx+Rm,yb+6); ctx.stroke();
-      ctx.font='bold 15px '+FONT; ctx.textAlign='center'; ctx.textBaseline='bottom';
+      ctx.strokeStyle=P.text; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx-Rm,yb); ctx.lineTo(cx+Rm,yb); ctx.moveTo(cx-Rm,yb-6); ctx.lineTo(cx-Rm,yb+6); ctx.moveTo(cx+Rm,yb-6); ctx.lineTo(cx+Rm,yb+6); ctx.stroke();
+      ctx.font='bold 14px '+F; ctx.textAlign='center'; ctx.textBaseline='bottom';
       const lab=`d = ${fmt(2*S.stats.rms)} µm`, lw=ctx.measureText(lab).width;
-      ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.fillRect(cx-lw/2-4,yb-24,lw+8,19);
-      ctx.fillStyle='#111'; ctx.fillText(lab,cx,yb-6);
+      ctx.fillStyle=P.bg; ctx.globalAlpha=.85; ctx.fillRect(cx-lw/2-4,yb-24,lw+8,19); ctx.globalAlpha=1;
+      ctx.fillStyle=P.text; ctx.fillText(lab,cx,yb-6);
     }
     ctx.restore();
-    // start marker
-    ctx.strokeStyle='#111'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx-6,cy); ctx.lineTo(cx+6,cy); ctx.moveTo(cx,cy-6); ctx.lineTo(cx,cy+6); ctx.stroke();
-    ctx.strokeStyle='#9aa3b2'; ctx.lineWidth=1; ctx.strokeRect(ox+0.5,oy+0.5,size,size);
-    // scale bar
+    ctx.strokeStyle=P.text; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx-6,cy); ctx.lineTo(cx+6,cy); ctx.moveTo(cx,cy-6); ctx.lineTo(cx,cy+6); ctx.stroke();
+    ctx.strokeStyle=P.axis; ctx.lineWidth=1; ctx.strokeRect(ox+.5,oy+.5,size,size);
     const L=niceStep(2*W,5), bx=ox+14, by=oy+size-16;
-    ctx.strokeStyle='#111'; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(bx+L*sc,by); ctx.stroke();
-    ctx.fillStyle='#111'; ctx.font='12px '+FONT; ctx.textAlign='left'; ctx.textBaseline='bottom'; ctx.fillText(`${tick(L,L)} µm`,bx,by-4);
-    this.legendView(ctx,ox,oy);
-  }
-  legendView(ctx,ox,oy){
-    const S=this.sim;
-    ctx.fillStyle='#1b2230'; ctx.font='bold 15px '+FONT; ctx.textAlign='left'; ctx.textBaseline='bottom';
-    const phone=this.cv.getBoundingClientRect().width<600;
-    ctx.fillText(`t = ${fmt(S.n*S.dt)} ms    n = ${S.n}`,ox,oy-(phone?24:6));
-    if(!this.ui.circles.checked) return;
-    ctx.font='12px '+FONT;
-    const cw=this.cv.getBoundingClientRect().width;
-    if(cw<600){ // on a phone the key goes on its own row under the time
-      let xx=ox; const y=oy-5;
-      ctx.strokeStyle=COL.meas; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(xx,y-6); ctx.lineTo(xx+20,y-6); ctx.stroke();
-      ctx.fillStyle='#1b2230'; ctx.fillText('measured',xx+25,y); xx+=25+ctx.measureText('measured').width+14;
-      ctx.strokeStyle='#111'; ctx.lineWidth=1.8; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.moveTo(xx,y-6); ctx.lineTo(xx+20,y-6); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillText('predicted',xx+25,y);
-      return;
-    }
-    const x=ox+150; let xx=x+40;
-    ctx.strokeStyle=COL.meas; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(xx,oy-12); ctx.lineTo(xx+20,oy-12); ctx.stroke();
-    ctx.fillStyle='#1b2230'; ctx.font='12px '+FONT; ctx.fillText('measured spread',xx+25,oy-6); xx+=25+ctx.measureText('measured spread').width+16;
-    ctx.strokeStyle='#111'; ctx.lineWidth=1.8; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.moveTo(xx,oy-12); ctx.lineTo(xx+20,oy-12); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillText('lecture prediction',xx+25,oy-6);
+    ctx.strokeStyle=P.text; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(bx+L*sc,by); ctx.stroke();
+    ctx.fillStyle=P.text; ctx.font='12px '+F; ctx.textAlign='left'; ctx.textBaseline='bottom'; ctx.fillText(`${tick(L,L)} µm`,bx,by-4);
+    if($('circles').checked) this.key(ctx,P,ox,oy-11);
   }
 
-  /* ---- 3D view ---- */
+  /* ---- 3D ---- */
   view3D(){
-    const g=setup(this.cv); if(!g) return; const {ctx,w,h}=g;
-    const S=this.sim, W=this.W, u=this.ui, N=S.N, p=S.pos;
-    ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
-    const size=Math.min(w,h-26), cx=w/2, cy=26+(h-26)/2;
-    const camD=4.5*W, F=(w<600?0.27:0.33)*size*camD/W;
+    const g=setup($('view')); if(!g) return; const {ctx,w,h}=g, P=XP.palette(), F=P.font;
+    const S=this.sim, W=this.W, N=S.N, p=S.pos;
+    ctx.fillStyle=P.bg; ctx.fillRect(0,0,w,h);
+    const top=22, size=Math.min(w,h-top), cx=w/2, cy=top+(h-top)/2;
+    const camD=4.5*W, Fz=(w<600?0.27:0.31)*size*camD/W;
     const cyw=Math.cos(this.yaw), syw=Math.sin(this.yaw), cp=Math.cos(this.pitch), sp=Math.sin(this.pitch);
-    const P=(x,y,z)=>{const x1=cyw*x-syw*y, y1=syw*x+cyw*y, y2=cp*y1-sp*z, z2=sp*y1+cp*z, dep=camD+y2, s=F/dep; return [cx+x1*s, cy-z2*s, dep, s];};
-    // box
-    ctx.strokeStyle='#cfd6e0'; ctx.lineWidth=1;
-    const cs=[-W,W];
-    for(const a of cs) for(const b of cs){
-      for(const [p0,p1] of [[[-W,a,b],[W,a,b]],[[a,-W,b],[a,W,b]],[[a,b,-W],[a,b,W]]]){
-        const A=P(...p0), B=P(...p1); ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.lineTo(B[0],B[1]); ctx.stroke();
-      }
+    const Pj=(x,y,z)=>{const x1=cyw*x-syw*y, y1=syw*x+cyw*y, y2=cp*y1-sp*z, z2=sp*y1+cp*z, dep=camD+y2, s=Fz/dep; return [cx+x1*s, cy-z2*s, dep, s];};
+    ctx.strokeStyle=P.grid; ctx.lineWidth=1;
+    for(const a of [-W,W]) for(const b of [-W,W]){
+      for(const [p0,p1] of [[[-W,a,b],[W,a,b]],[[a,-W,b],[a,W,b]],[[a,b,-W],[a,b,W]]]){const A=Pj(...p0), B=Pj(...p1); ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.lineTo(B[0],B[1]); ctx.stroke();}
     }
-    // axes through the start point
-    ctx.font='bold 14px '+FONT; ctx.textAlign='center'; ctx.textBaseline='middle';
+    const cc=[P.c1,P.c2,P.c3];
+    ctx.font='bold 14px '+F; ctx.textAlign='center'; ctx.textBaseline='middle';
     [[W,0,0],[0,W,0],[0,0,W]].forEach((e,i)=>{
-      const A=P(-e[0],-e[1],-e[2]), B=P(...e); ctx.strokeStyle='#b8c0cc'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.lineTo(B[0],B[1]); ctx.stroke();
-      const T=P(e[0]*1.08,e[1]*1.08,e[2]*1.08); ctx.fillStyle=COL.coord[i]; ctx.fillText(CN[i],T[0],T[1]);
+      const A=Pj(-e[0],-e[1],-e[2]), B=Pj(...e); ctx.strokeStyle=P.axis; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.lineTo(B[0],B[1]); ctx.stroke();
+      const T=Pj(e[0]*1.08,e[1]*1.08,e[2]*1.08); ctx.fillStyle=cc[i]; ctx.fillText(CN[i],T[0],T[1]);
     });
     const sphere=(R,style,dash,lw)=>{
       ctx.strokeStyle=style; ctx.lineWidth=lw; ctx.setLineDash(dash);
-      for(let pl=0;pl<3;pl++){ctx.beginPath(); for(let i=0;i<=96;i++){const th=2*Math.PI*i/96, c=R*Math.cos(th), s=R*Math.sin(th); const q=pl===0?P(c,s,0):pl===1?P(c,0,s):P(0,c,s); i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);} ctx.stroke();}
+      for(let pl=0;pl<3;pl++){ctx.beginPath(); for(let i=0;i<=96;i++){const th=2*Math.PI*i/96, c=R*Math.cos(th), s=R*Math.sin(th); const q=pl===0?Pj(c,s,0):pl===1?Pj(c,0,s):Pj(0,c,s); i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);} ctx.stroke();}
       ctx.setLineDash([]);
     };
-    if(u.circles.checked && S.n>0) sphere(Math.sqrt(S.k*S.n)*S.a,'rgba(17,17,17,0.75)',[6,5],1.6);
-    // molecules, far ones first
-    const pr=new Float64Array(N*3), idx=new Uint32Array(N);
-    let dmin=Infinity,dmax=-Infinity;
-    const of=S.off;
-    for(let i=0;i<N;i++){const q=P(p[3*i]+of[3*i],p[3*i+1]+of[3*i+1],p[3*i+2]+of[3*i+2]); pr[3*i]=q[0]; pr[3*i+1]=q[1]; pr[3*i+2]=q[2]; idx[i]=i; if(q[2]<dmin)dmin=q[2]; if(q[2]>dmax)dmax=q[2];}
+    const circles=$('circles').checked;
+    if(circles&&S.n>0){ctx.globalAlpha=.8; sphere(Math.sqrt(S.k*S.n)*S.a,P.theory,[6,5],1.6); ctx.globalAlpha=1;}
+    const pr=new Float64Array(N*3), idx=new Uint32Array(N), of=S.off; let dmin=Infinity,dmax=-Infinity;
+    for(let i=0;i<N;i++){const q=Pj(p[3*i]+of[3*i],p[3*i+1]+of[3*i+1],p[3*i+2]+of[3*i+2]); pr[3*i]=q[0]; pr[3*i+1]=q[1]; pr[3*i+2]=q[2]; idx[i]=i; if(q[2]<dmin)dmin=q[2]; if(q[2]>dmax)dmax=q[2];}
     idx.sort((i,j)=>pr[3*j+2]-pr[3*i+2]);
     const base=N<=10?5:N<=200?3.2:N<=1000?2.4:1.9, span=Math.max(1e-9,dmax-dmin);
-    for(let k=0;k<N;k++){
-      const i=idx[k], dep=pr[3*i+2], near=1-(dep-dmin)/span, r=base*(camD/dep);
-      ctx.fillStyle=`rgba(${Math.round(150+64*near)},${Math.round(30+10*near)},${Math.round(40)},${(0.35+0.6*near).toFixed(2)})`;
-      ctx.fillRect(pr[3*i]-r,pr[3*i+1]-r,2*r,2*r);
-    }
-    if(u.circles.checked && S.n>0) sphere(S.stats.rms,COL.meas,[],2.6);
-    if(u.path.checked && S.trail.length>1){
-      ctx.strokeStyle=COL.path; ctx.lineWidth=1.6; ctx.beginPath();
-      S.trail.forEach((q,i)=>{const z=P(q[0],q[1],q[2]); i?ctx.lineTo(z[0],z[1]):ctx.moveTo(z[0],z[1]);}); ctx.stroke();
-      const q=S.trail[S.trail.length-1], z=P(q[0],q[1],q[2]); ctx.fillStyle=COL.path; ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+    for(let k=0;k<N;k++){const i=idx[k], dep=pr[3*i+2], near=1-(dep-dmin)/span, r=base*(camD/dep); ctx.fillStyle=rgba(P.particle,(0.3+0.65*near).toFixed(2)); ctx.fillRect(pr[3*i]-r,pr[3*i+1]-r,2*r,2*r);}
+    if(circles&&S.n>0) sphere(S.stats.rms,P.measured,[],2.6);
+    if($('path').checked&&S.trail.length>1){
+      ctx.strokeStyle=P.path; ctx.lineWidth=1.6; ctx.beginPath();
+      S.trail.forEach((q,i)=>{const z=Pj(q[0],q[1],q[2]); i?ctx.lineTo(z[0],z[1]):ctx.moveTo(z[0],z[1]);}); ctx.stroke();
+      const q=S.trail[S.trail.length-1], z=Pj(q[0],q[1],q[2]); ctx.fillStyle=P.path; ctx.strokeStyle=P.bg; ctx.lineWidth=2;
       ctx.beginPath(); ctx.arc(z[0],z[1],6,0,2*Math.PI); ctx.fill(); ctx.stroke();
     }
-    const o=P(0,0,0); ctx.strokeStyle='#111'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(o[0]-6,o[1]); ctx.lineTo(o[0]+6,o[1]); ctx.moveTo(o[0],o[1]-6); ctx.lineTo(o[0],o[1]+6); ctx.stroke();
-    ctx.fillStyle='#5b6577'; ctx.font='12px '+FONT; ctx.textAlign='right'; ctx.textBaseline='bottom';
-    ctx.fillText(`box edge = ${fmt(2*W)} µm. Drag to turn.`,w-8,h-6);
-    this.legendView(ctx,Math.max(8,cx-size/2),w<600?44:26);
+    const o=Pj(0,0,0); ctx.strokeStyle=P.text; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(o[0]-6,o[1]); ctx.lineTo(o[0]+6,o[1]); ctx.moveTo(o[0],o[1]-6); ctx.lineTo(o[0],o[1]+6); ctx.stroke();
+    ctx.fillStyle=P.muted; ctx.font='12px '+F; ctx.textAlign='right'; ctx.textBaseline='bottom';
+    ctx.fillText(`box edge = ${fmt(2*W)} µm`,w-6,h-4);
+    if(circles) this.key(ctx,P,Math.max(6,cx-size/2),11);
   }
 }
 
-/* Least-squares fit of c*f(t) to the data; for curve C also search the time constant tau. */
-function fitCurve(key,ts,ys){
-  const m=ts.length; if(m<3) return null;
-  const fitWith=f=>{let sfy=0,sff=0; for(let i=0;i<m;i++){const v=f(ts[i]); sfy+=v*ys[i]; sff+=v*v;} const c=sff>0?sfy/sff:0; let sse=0; for(let i=0;i<m;i++){const e=ys[i]-c*f(ts[i]); sse+=e*e;} return {c,sse,f};};
-  let r;
-  if(key!=='C') r=fitWith(CANDS[key].f);
-  else{
-    const tm=ts[m-1];
-    for(let j=0;j<=60;j++){const tau=tm*Math.pow(10,-2+3*j/60); const q=fitWith(t=>1-Math.exp(-t/tau)); q.tau=tau; if(!r||q.sse<r.sse) r=q;}
-  }
-  r.gap=Math.sqrt(r.sse/m);
-  return r;
-}
-
-/* ---------- start ---------- */
-const tabs={1:new Tab(1),2:new Tab(2),3:new Tab(3)};
-let active=tabs[1];
-function show(d){
-  for(const k in tabs) tabs[k].el.classList.toggle('on',+k===d);
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',+b.dataset.tab===d));
-  active=tabs[d]; active.dirty=true;
-}
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(+b.dataset.tab));
-show(1);
-window.addEventListener('resize',()=>{for(const k in tabs) tabs[k].dirty=true;});
-// so that the Space key never presses a button or ticks a box by accident
-document.addEventListener('click',e=>{const t=e.target; if(t.tagName==='BUTTON'||(t.tagName==='INPUT'&&t.type==='checkbox')) setTimeout(()=>t.blur(),0);});
-document.addEventListener('keydown',e=>{
-  if(e.target.tagName==='SELECT'||e.target.tagName==='INPUT'&&e.target.type!=='checkbox'&&e.target.type!=='range') return;
-  if(e.code==='Space'){e.preventDefault(); active.togglePlay();}
-  else if(e.key==='s'||e.key==='S'){active.ui.step.click();}
-  else if(e.key==='r'||e.key==='R'){active.rebuild();}
-});
-(function loop(){ active.frame(); requestAnimationFrame(loop); })();
-window.__tabs=tabs;
+XP.init();
+const app=new App();
+(function loop(){app.frame(); requestAnimationFrame(loop);})();
+window.__app=app;
 })();
 </script>
 </body>
