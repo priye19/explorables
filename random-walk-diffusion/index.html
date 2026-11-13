@@ -659,7 +659,17 @@ class Tab{
     ctx.fillStyle='#1b2230'; ctx.font='bold 15px '+FONT; ctx.textAlign='left'; ctx.textBaseline='bottom';
     ctx.fillText(`t = ${fmt(S.n*S.dt)} ms    n = ${S.n}`,ox,oy-6);
     if(!this.ui.circles.checked) return;
-    ctx.font='12px '+FONT; const x=ox+150; let xx=x+40;
+    ctx.font='12px '+FONT;
+    const cw=this.cv.getBoundingClientRect().width;
+    if(cw<600){ // on a phone the key goes on its own row under the time
+      let xx=ox; const y=oy+10;
+      ctx.strokeStyle=COL.meas; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(xx,y-6); ctx.lineTo(xx+20,y-6); ctx.stroke();
+      ctx.fillStyle='#1b2230'; ctx.fillText('measured',xx+25,y); xx+=25+ctx.measureText('measured').width+14;
+      ctx.strokeStyle='#111'; ctx.lineWidth=1.8; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.moveTo(xx,y-6); ctx.lineTo(xx+20,y-6); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillText('predicted',xx+25,y);
+      return;
+    }
+    const x=ox+150; let xx=x+40;
     ctx.strokeStyle=COL.meas; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(xx,oy-12); ctx.lineTo(xx+20,oy-12); ctx.stroke();
     ctx.fillStyle='#1b2230'; ctx.font='12px '+FONT; ctx.fillText('measured spread',xx+25,oy-6); xx+=25+ctx.measureText('measured spread').width+16;
     ctx.strokeStyle='#111'; ctx.lineWidth=1.8; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.moveTo(xx,oy-12); ctx.lineTo(xx+20,oy-12); ctx.stroke(); ctx.setLineDash([]);
@@ -672,7 +682,7 @@ class Tab{
     const S=this.sim, W=this.W, u=this.ui, N=S.N, p=S.pos;
     ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
     const size=Math.min(w,h-26), cx=w/2, cy=26+(h-26)/2;
-    const camD=4.5*W, F=0.33*size*camD/W;
+    const camD=4.5*W, F=(w<600?0.27:0.33)*size*camD/W;
     const cyw=Math.cos(this.yaw), syw=Math.sin(this.yaw), cp=Math.cos(this.pitch), sp=Math.sin(this.pitch);
     const P=(x,y,z)=>{const x1=cyw*x-syw*y, y1=syw*x+cyw*y, y2=cp*y1-sp*z, z2=sp*y1+cp*z, dep=camD+y2, s=F/dep; return [cx+x1*s, cy-z2*s, dep, s];};
     // box
