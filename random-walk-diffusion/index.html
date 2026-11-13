@@ -95,7 +95,10 @@
       <p class="hint">All three give a spread that grows as √t; only the constant changes. Notes explains each.</p></div>
     <div class="opt" data-dims="2"><label for="mode">Display</label>
       <select id="mode"><option value="dots">Molecules as dots</option><option value="conc">Concentration (molecules per area)</option></select></div>
-    <div class="opt" data-dims="1"><label class="chk"><input type="checkbox" id="paths" checked> Show the paths of 25 molecules</label></div>
+    <div class="opt" data-dims="1"><label for="pic1">1D picture</label>
+      <select id="pic1"><option value="line">Number line: the molecules jumping left and right</option><option value="time">Position against time: each molecule's path</option></select>
+      <p class="hint">The second picture is the step diagram of the lecture: x on the vertical axis, t on the horizontal axis.</p></div>
+    <div class="opt" data-dims="1"><label class="chk"><input type="checkbox" id="paths" checked> Show the paths of 25 molecules (position against time)</label></div>
     <div class="opt"><label class="chk"><input type="checkbox" id="path" checked> Show the path of one molecule</label></div>
     <div class="opt"><label class="chk"><input type="checkbox" id="circles" checked> Show the measured and predicted spread</label></div>
     <div class="opt" data-dims="3"><label class="chk"><input type="checkbox" id="spin" checked> Turn the 3D picture slowly</label></div>
@@ -192,7 +195,7 @@ const CANDS={
   D:{name:'D: d ∝ √t',f:t=>Math.sqrt(t),col:'c5'}
 };
 const NLIST=[1,10,50,200,500,1000,2000,5000];
-const VIEW_TITLE={1:'Positions of the molecules against time',2:'Molecules spreading from one point, seen from above',3:'Molecules spreading from one point in three dimensions (drag to turn)'};
+const VIEW_TITLE={1:'Molecules jumping left and right on a line',1.5:'Positions of the molecules against time',2:'Molecules spreading from one point, seen from above',3:'Molecules spreading from one point in three dimensions (drag to turn)'};
 const rgba=(rgb,a)=>`rgba(${rgb},${a})`;
 
 /* ---------- the random walk ---------- */
@@ -278,6 +281,7 @@ class App{
     for(const id of ['a','dt']) $(id).addEventListener('input',()=>this.rebuild());
     $('dim').addEventListener('change',()=>{this.d=+$('dim').value; this.applyDim(); this.rebuild();});
     for(const id of ['mode','path','paths','circles','spin']) $(id).addEventListener('change',()=>{this.dirty=true;});
+    $('pic1').addEventListener('change',()=>{this.applyDim(); this.dirty=true;});
     $('sq').addEventListener('change',()=>{this.squared=$('sq').checked; this.dirty=true;});
     document.querySelectorAll('.cands button').forEach(b=>b.onclick=()=>{
       const k=b.dataset.c; if(this.fits.has(k)) this.fits.delete(k); else this.fits.add(k);
@@ -301,7 +305,7 @@ class App{
   }
   applyDim(){
     document.querySelectorAll('[data-dims]').forEach(el=>{el.style.display=el.dataset.dims.includes(String(this.d))?'':'none';});
-    $('viewTitle').textContent=VIEW_TITLE[this.d];
+    $('viewTitle').textContent=VIEW_TITLE[this.d===1&&$('pic1').value==='time'?1.5:this.d];
   }
   labels(){$('speedV').textContent=$('speed').value; $('aV').textContent=$('a').value; $('dtV').textContent=$('dt').value;}
   rebuild(){
@@ -327,7 +331,60 @@ class App{
     const S=this.sim; $('status').textContent=`t = ${fmt(S.n*S.dt)} ms   n = ${S.n} of ${S.nmax}`;
     this.drawView(); this.drawSpread(); this.drawHist(); this.drawMean(); this.updateTable();
   }
-  drawView(){if(this.d===1) this.view1D(); else if(this.d===2) this.view2D(); else this.view3D();}
+  drawView(){if(this.d===1){if($('pic1').value==='time') this.view1D(); else this.viewLine();} else if(this.d===2) this.view2D(); else this.view3D();}
+
+  /* ---- 1D: the molecules on a number line ---- */
+  viewLine(){
+    const g=setup($('view')); if(!g) return; const {ctx,w,h}=g, P=XP.palette(), F=P.font;
+    const S=this.sim, W=this.W, N=S.N, p=S.pos, a=S.a;
+    ctx.fillStyle=P.bg; ctx.fillRect(0,0,w,h);
+    const m={l:14,r:14,t:w<700?54:30,b:52}, pw=w-m.l-m.r, ph=h-m.t-m.b; if(pw<60||ph<40) return;
+    const X=x=>m.l+(x+W)/(2*W)*pw, sc=pw/(2*W);
+    // the strip the molecules move in, with grid lines at round positions
+    ctx.fillStyle=P.field; ctx.fillRect(m.l,m.t,pw,ph);
+    const gs=niceStep(2*W,Math.max(4,Math.min(10,Math.floor(pw/70))));
+    ctx.strokeStyle=P.fieldGrid; ctx.lineWidth=1;
+    for(let v=Math.ceil(-W/gs)*gs;v<=W+1e-9;v+=gs){ctx.beginPath(); ctx.moveTo(X(v),m.t); ctx.lineTo(X(v),m.t+ph); ctx.stroke();}
+    ctx.strokeStyle=P.axis; ctx.strokeRect(m.l+.5,m.t+.5,pw,ph);
+    // number line under the strip: ticks at every step a when they are far enough apart, labels at round positions
+    const yl=m.t+ph+14;
+    ctx.strokeStyle=P.text; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(m.l,yl); ctx.lineTo(m.l+pw,yl); ctx.stroke();
+    if(a*sc>=4){ctx.lineWidth=1; ctx.beginPath(); for(let k=Math.ceil(-W/a);k*a<=W;k++){const px=X(k*a); ctx.moveTo(px,yl-3); ctx.lineTo(px,yl+3);} ctx.stroke();}
+    ctx.fillStyle=P.text; ctx.font='11.5px '+F; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.lineWidth=1.5;
+    for(let v=Math.ceil(-W/gs)*gs;v<=W+1e-9;v+=gs){const px=X(v); ctx.beginPath(); ctx.moveTo(px,yl-6); ctx.lineTo(px,yl+6); ctx.stroke(); ctx.fillText(tick(v,gs),px,yl+8);}
+    ctx.font='12.5px '+F; ctx.textBaseline='bottom'; ctx.fillText('position x (µm)',m.l+pw/2,h-2);
+    // where each molecule is drawn across the strip: its own row when there are few, a random height when many
+    const rows=N<=25, rowY=i=>rows? m.t+ph*(i+0.5)/N : m.t+6+S.jit[i]*(ph-12);
+    ctx.save(); ctx.beginPath(); ctx.rect(m.l,m.t,pw,ph); ctx.clip();
+    if(rows&&N>1){ctx.strokeStyle=P.fieldGrid; ctx.setLineDash([2,4]); for(let i=0;i<N;i++){ctx.beginPath(); ctx.moveTo(m.l,rowY(i)); ctx.lineTo(m.l+pw,rowY(i)); ctx.stroke();} ctx.setLineDash([]);}
+    // the starting point
+    ctx.strokeStyle=P.text; ctx.lineWidth=1.5; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.moveTo(X(0),m.t); ctx.lineTo(X(0),m.t+ph); ctx.stroke(); ctx.setLineDash([]);
+    const rad=N<=25?Math.min(9,Math.max(4,ph/N/3)):N<=200?3:N<=1000?2.2:1.6;
+    ctx.fillStyle=rgba(P.particle,N<=200?.9:.6);
+    for(let i=0;i<N;i++){const px=X(p[i]), py=rowY(i); if(N<=200){ctx.beginPath(); ctx.arc(px,py,rad,0,2*Math.PI); ctx.fill();} else ctx.fillRect(px-rad,py-rad,2*rad,2*rad);}
+    // one molecule followed: its last steps as a fading trail, and a larger blue dot
+    if($('path').checked&&S.n>0){
+      const y0=rowY(0), T=S.trail, k0=Math.max(0,T.length-12);
+      for(let k=k0;k<T.length-1;k++){ctx.strokeStyle=P.path; ctx.globalAlpha=0.15+0.6*(k-k0)/12; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(X(T[k][0]),y0); ctx.lineTo(X(T[k+1][0]),y0); ctx.stroke();}
+      ctx.globalAlpha=1; ctx.fillStyle=P.path; ctx.strokeStyle=P.bg; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(X(p[0]),y0,Math.max(rad+2,6),0,2*Math.PI); ctx.fill(); ctx.stroke();
+    }
+    // spread: predicted (dashed) and measured (orange) at plus and minus one standard deviation
+    if($('circles').checked&&S.n>0){
+      const sp=Math.sqrt(S.n)*a, ms=Math.sqrt(S.stats.v[0]), mu=S.stats.mean[0];
+      ctx.strokeStyle=P.theory; ctx.lineWidth=1.8; ctx.setLineDash([7,5]);
+      for(const s of [sp,-sp]){ctx.beginPath(); ctx.moveTo(X(s),m.t); ctx.lineTo(X(s),m.t+ph); ctx.stroke();}
+      ctx.setLineDash([]); ctx.strokeStyle=P.measured; ctx.lineWidth=3;
+      for(const s of [mu+ms,mu-ms]){ctx.beginPath(); ctx.moveTo(X(s),m.t); ctx.lineTo(X(s),m.t+ph); ctx.stroke();}
+    }
+    ctx.restore();
+    if($('circles').checked&&S.n>0){
+      const ms=Math.sqrt(S.stats.v[0]), mu=S.stats.mean[0], x0=X(mu-ms), x1=X(mu+ms), yb=m.t-8;
+      ctx.strokeStyle=P.text; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x0,yb); ctx.lineTo(x1,yb); ctx.moveTo(x0,yb-5); ctx.lineTo(x0,yb+5); ctx.moveTo(x1,yb-5); ctx.lineTo(x1,yb+5); ctx.stroke();
+      ctx.fillStyle=P.text; ctx.font='bold 13px '+F; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText(`d = 2σ = ${fmt(2*ms)} µm`,(x0+x1)/2,yb-6);
+      this.key(ctx,P,m.l,12);
+    }
+  }
 
   /* ---- numbers table ---- */
   buildTable(){
