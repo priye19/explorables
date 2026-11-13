@@ -36,7 +36,7 @@ Built 2026-11-13 to carry out the decisions above; the details below are the imp
 - The front page groups explorables by subject; each entry has tags, one of them the course it was first used in.
 - Nothing is loaded from the internet, with one exception: the visit counter below. The theme is a local file of the repository. To use the collection offline, download the whole repository, not one folder.
 - **Visit counting (decided 2026-11-13 at his request):** Umami Cloud, free Hobby plan (one website, which covers everything under priye19.github.io), website "Explorables" in his own Umami account. `theme/explorables.js` adds the tracking script only when the page is on priye19.github.io, so local tests and offline copies are not counted. The reports (visitors, pages, visit length) are visible only in his Umami account; nothing about them is shown on the site. A new explorable is counted automatically because it loads the theme.
-- **This repository is public, including this file.** Never write an email address, account name, password or other personal detail into any file here.
+- **This repository is public, including this file.** Never write an email address, account name, password or other personal detail into any file here. (Kept 2026-11-13 on his approval, after his email address was nearly written into this file.)
 - Text inside the pages follows his writing rules (no em dashes, every term defined, no analogies) and refers to nothing outside the page (no "the ink drop slide").
 - This repository is the one home of each explorable. Everything here is public: no student data, no grades, no personal details.
 
