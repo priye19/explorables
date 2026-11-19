@@ -17,7 +17,7 @@
   --theory:#111111; --measured:#e8890c;
   --c1:#1f5fbf; --c2:#2e7d32; --c3:#7b3fb5; --c4:#00838f; --c5:#c2185b;
   --particle:214,39,40; --path:#1f5fbf; --field:#eaf4fb; --field-grid:#d5e3ee; --band:rgba(120,130,150,.18);
-  --radius:8px;
+  --radius:8px; --s:1;
   color-scheme:light;
 }
 :root[data-theme="dark"]{
@@ -32,45 +32,45 @@
 
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--text);font:15px/1.45 var(--font)}
+body{background:var(--bg);color:var(--text);font:calc(15px*var(--s))/1.45 var(--font)}
 a{color:var(--primary)}
 
 /* ---- page frame ---- */
 .xp-app{display:flex;flex-direction:column;min-height:100vh}
 @media (min-width:1000px){.xp-app.fit{height:100vh}}
 .xp-header{display:flex;align-items:center;gap:14px;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border)}
-.xp-back{color:var(--primary);text-decoration:none;font-size:14px;white-space:nowrap}
-.xp-header h1{margin:0;font-size:19px;color:var(--accent);font-weight:700;line-height:1.2}
+.xp-back{color:var(--primary);text-decoration:none;font-size:calc(14px*var(--s));white-space:nowrap}
+.xp-header h1{margin:0;font-size:calc(19px*var(--s));color:var(--accent);font-weight:700;line-height:1.2}
 .xp-spacer{flex:1}
 
 /* ---- buttons and fields ---- */
-.btn{font:inherit;font-size:14px;font-weight:600;padding:7px 13px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;white-space:nowrap}
+.btn{font:inherit;font-size:calc(14px*var(--s));font-weight:600;padding:7px 13px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;white-space:nowrap}
 .btn:hover,.btn:focus-visible{border-color:var(--primary)}
 .btn-primary{background:var(--primary);border-color:var(--primary);color:var(--primary-text)}
 .btn-quiet{background:transparent}
-select,.xp-input{font:inherit;font-size:14px;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--text)}
+select,.xp-input{font:inherit;font-size:calc(14px*var(--s));padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);color:var(--text)}
 input[type=range]{accent-color:var(--primary)}
 input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px}
 
 /* ---- control deck ---- */
 .xp-controls{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px 12px;display:flex;flex-direction:column;gap:10px}
 .xp-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
-.xp-field{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.xp-field{display:flex;align-items:center;gap:8px;font-size:calc(14px*var(--s));color:var(--muted)}
 .xp-sep{width:1px;height:28px;background:var(--border);margin:0 4px}
-.xp-status{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
+.xp-status{font-size:calc(13px*var(--s));font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
 .xp-dials{gap:14px 22px;align-items:flex-start}
 /* the control deck in three parts, side by side on wide screens:
    about (main drop-down, Notes, Settings, what is shown and what to do) | run buttons | main dials with their meanings */
 .xp-deck{display:grid;grid-template-columns:minmax(300px,1.25fr) 300px minmax(420px,1.5fr);gap:10px 22px;align-items:start}
-.xp-about p{margin:6px 0 0;font-size:13px;line-height:1.4;color:var(--muted)}
+.xp-about p{margin:6px 0 0;font-size:calc(13px*var(--s));line-height:1.4;color:var(--muted)}
 .xp-about p b{color:var(--text)}
 .xp-run{display:flex;flex-direction:column;gap:5px;padding:0 22px;border-left:1px solid var(--border);border-right:1px solid var(--border);align-self:stretch}
 .xp-run-buttons{display:flex;gap:8px;flex-wrap:wrap}
-.xp-run .hint,.xp-dial .hint{font-size:12px;line-height:1.3;color:var(--muted)}
+.xp-run .hint,.xp-dial .hint{font-size:calc(12px*var(--s));line-height:1.3;color:var(--muted)}
 .xp-dialgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 22px}
 .xp-dialgrid .xp-dial{max-width:none}
-.card h2 .sub{font-weight:400;font-size:12.5px;color:var(--muted);margin-left:8px}
-.xp-dial{display:flex;flex-direction:column;gap:2px;flex:1 1 170px;max-width:270px;font-size:13px;color:var(--muted)}
+.card h2 .sub{font-weight:400;font-size:calc(12.5px*var(--s));color:var(--muted);margin-left:8px}
+.xp-dial{display:flex;flex-direction:column;gap:2px;flex:1 1 calc(170px*var(--s));max-width:calc(270px*var(--s));font-size:calc(13px*var(--s));color:var(--muted)}
 .xp-dial .top{display:flex;justify-content:space-between;gap:8px}
 .xp-dial .val{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
 .xp-dial input[type=range]{width:100%}
@@ -79,8 +79,8 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px}
 .xp-results{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px 16px 16px}
 .xp-col{display:flex;flex-direction:column;gap:12px;min-height:0;min-width:0}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px 10px;display:flex;flex-direction:column;min-height:0;min-width:0}
-.card h2{margin:0 0 4px;font-size:14px;font-weight:700}
-.card .cap{font-size:12px;color:var(--muted);margin:4px 0 0}
+.card h2{margin:0 0 4px;font-size:calc(14px*var(--s));font-weight:700}
+.card .cap{font-size:calc(12px*var(--s));color:var(--muted);margin:4px 0 0}
 .card canvas{display:block;width:100%;flex:1 1 0;min-height:140px;touch-action:none}
 .card.grow{flex:1 1 0}
 @media (max-width:999px){
@@ -88,7 +88,7 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px}
   .card.grow{flex:none}
   .card canvas{flex:none;height:270px}
   .xp-sep{display:none}
-  .xp-header h1{font-size:16px}
+  .xp-header h1{font-size:calc(16px*var(--s))}
   .card.main canvas{height:92vw;max-height:640px}
   .xp-deck{grid-template-columns:minmax(0,1fr)}
   .xp-run{padding:10px 0;border:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
@@ -96,7 +96,7 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px}
 @media (max-width:600px){.xp-dialgrid{grid-template-columns:minmax(0,1fr)} .card h2 .sub{display:block;margin:2px 0 0}}
 
 /* ---- readout table ---- */
-table.xp-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+table.xp-table{width:100%;border-collapse:collapse;font-size:calc(13px*var(--s));font-variant-numeric:tabular-nums}
 .xp-table th,.xp-table td{padding:2px 4px;border-bottom:1px solid var(--border);text-align:right;vertical-align:top}
 .xp-table th:first-child,.xp-table td:first-child{text-align:left}
 .xp-table thead th{color:var(--muted);font-weight:600}
@@ -107,18 +107,24 @@ table.xp-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-n
 .xp-panel{position:fixed;top:0;right:0;height:100%;width:min(600px,94vw);background:var(--surface);border-left:1px solid var(--border);transform:translateX(102%);transition:transform .22s ease;z-index:21;display:flex;flex-direction:column}
 .xp-panel.open{transform:none}
 .xp-panel>header{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--border)}
-.xp-panel>header h2{margin:0;font-size:18px;color:var(--accent)}
+.xp-panel>header h2{margin:0;font-size:calc(18px*var(--s));color:var(--accent)}
 .xp-panel .body{overflow:auto;padding:14px 20px 40px}
-.xp-panel .opt{display:flex;flex-direction:column;gap:4px;margin:0 0 14px;font-size:14px}
+.xp-panel .opt{display:flex;flex-direction:column;gap:4px;margin:0 0 14px;font-size:calc(14px*var(--s))}
 .xp-panel .opt label.chk{display:flex;gap:10px;align-items:center;cursor:pointer}
-.xp-panel .hint{font-size:12.5px;color:var(--muted);margin:2px 0 0}
+.xp-panel .hint{font-size:calc(12.5px*var(--s));color:var(--muted);margin:2px 0 0}
 
 /* ---- notes text ---- */
-.notes h3{color:var(--accent);font-size:16px;margin:20px 0 6px}
+.notes h3{color:var(--accent);font-size:calc(16px*var(--s));margin:20px 0 6px}
 .notes h3:first-child{margin-top:0}
 .notes p,.notes li{margin:0 0 8px}
 .notes ol,.notes ul{padding-left:22px;margin:0 0 8px}
-.notes .eq{display:block;margin:6px 0 12px;padding:7px 12px;background:var(--surface-2);border-left:3px solid var(--accent);border-radius:4px;font-family:var(--math);font-size:16.5px;line-height:1.6}
+.notes .eq{display:block;margin:6px 0 12px;padding:7px 12px;background:var(--surface-2);border-left:3px solid var(--accent);border-radius:4px;font-family:var(--math);font-size:calc(16.5px*var(--s));line-height:1.6}
 .notes details{margin:8px 0 12px;border:1px solid var(--border);border-radius:6px;padding:6px 12px}
 .notes summary{cursor:pointer;font-weight:600;color:var(--primary)}
-.notes .src{font-size:12.5px;color:var(--muted);margin-top:22px}
+.notes .src{font-size:calc(12.5px*var(--s));color:var(--muted);margin-top:22px}
+
+/* Text size grows with the window (its width and its height, so the plots keep their room): every font size above is a base size times --s, and the
+   canvases read --s too (XP.setup), so labels on plots grow with the rest of the page. */
+@media (min-width:1600px) and (min-height:850px){:root{--s:1.15}}
+@media (min-width:1700px) and (min-height:1050px){:root{--s:1.3}}
+@media (min-width:2100px) and (min-height:1250px){:root{--s:1.45}}

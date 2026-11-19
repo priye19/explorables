@@ -91,14 +91,19 @@
     return v.toFixed(d);
   };
 
-  /* Sizes a canvas to its box on screen (sharp on high-density screens). */
+  /* The text-size factor of the page (--s in the stylesheet, larger on wide windows). */
+  XP.scale = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s')) || 1;
+
+  /* Sizes a canvas to its box on screen (sharp on high-density screens). Drawing is magnified by
+     XP.scale(), so fonts, margins and line widths grow with the page text; the w and h returned
+     are the box size divided by that factor, and a pointer position must be divided by it too. */
   XP.setup = cv => {
-    const r = cv.getBoundingClientRect(), w = Math.round(r.width), h = Math.round(r.height);
-    if (w < 30 || h < 30) return null;
-    const dpr = window.devicePixelRatio || 1;
-    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
-    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return { ctx, w, h };
+    const r = cv.getBoundingClientRect(), W = Math.round(r.width), H = Math.round(r.height);
+    if (W < 30 || H < 30) return null;
+    const dpr = window.devicePixelRatio || 1, s = XP.scale();
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr * s, 0, 0, dpr * s, 0, 0);
+    return { ctx, w: W / s, h: H / s, s };
   };
 
   /* A line and bar plot. Legend in rows above the plot so it never covers data; a series with

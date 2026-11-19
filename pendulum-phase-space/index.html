@@ -298,13 +298,13 @@ class App{
     // dragging a bob of run 1 sets where it starts
     const cv=$('view');
     cv.addEventListener('pointerdown',e=>{
-      const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top, G=this.geom; if(!G) return;
+      const r=cv.getBoundingClientRect(), s=XP.scale(), x=(e.clientX-r.left)/s, y=(e.clientY-r.top)/s, G=this.geom; if(!G) return;
       const P=this.bobs(this.sim.S[0]); let best=null,bd=28;
       P.forEach((p,i)=>{const d=Math.hypot(G.X(p[0])-x,G.Y(p[1])-y); if(d<bd){bd=d; best=i;}});
       if(best===null) return;
       this.drag=best; this.setPlaying(false); cv.classList.add('drag'); cv.setPointerCapture(e.pointerId); this.dragTo(x,y);
     });
-    cv.addEventListener('pointermove',e=>{if(this.drag===null) return; const r=cv.getBoundingClientRect(); this.dragTo(e.clientX-r.left,e.clientY-r.top);});
+    cv.addEventListener('pointermove',e=>{if(this.drag===null) return; const r=cv.getBoundingClientRect(), s=XP.scale(); this.dragTo((e.clientX-r.left)/s,(e.clientY-r.top)/s);});
     const up=()=>{this.drag=null; cv.classList.remove('drag');};
     cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
   }

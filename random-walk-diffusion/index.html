@@ -8,12 +8,12 @@
 <link rel="stylesheet" href="../theme/explorables.css">
 <script src="../theme/explorables.js"></script>
 <style>
-.cands{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--muted);margin:0 0 4px}
-.cands button{font:inherit;font-size:12.5px;font-weight:700;padding:1px 9px;border-radius:5px;border:2px solid var(--cc);background:transparent;color:var(--cc);cursor:pointer}
+.cands{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:calc(12.5px*var(--s));color:var(--muted);margin:0 0 4px}
+.cands button{font:inherit;font-size:calc(12.5px*var(--s));font-weight:700;padding:1px 9px;border-radius:5px;border:2px solid var(--cc);background:transparent;color:var(--cc);cursor:pointer}
 .cands button.on{background:var(--cc);color:var(--surface)}
 .cands .A{--cc:var(--c3)} .cands .B{--cc:var(--c2)} .cands .C{--cc:var(--c4)} .cands .D{--cc:var(--c5)}
 .cands label{display:flex;gap:6px;align-items:center;margin-left:auto;cursor:pointer}
-.gaps{font-size:12px;color:var(--muted);min-height:16px;margin-top:3px}
+.gaps{font-size:calc(12px*var(--s));color:var(--muted);min-height:16px;margin-top:3px}
 .numbers{flex:0 0 auto;max-height:36%;overflow:auto}
 @media (max-width:999px){.numbers{max-height:none}}
 </style>
