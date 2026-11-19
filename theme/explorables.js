@@ -118,12 +118,17 @@
     if (pw < 40 || ph < 30) return;
     const { xmin, xmax, ymin, ymax } = o;
     const X = v => m.l + (v - xmin) / (xmax - xmin) * pw, Y = v => m.t + ph - (v - ymin) / (ymax - ymin) * ph;
-    const xs = XP.niceStep(xmax - xmin, Math.max(3, Math.min(6, Math.floor(pw / 60)))), ys = XP.niceStep(ymax - ymin, Math.max(3, Math.min(5, Math.floor(ph / 40))));
+    const xs = XP.niceStep(xmax - xmin, Math.max(3, Math.min(6, Math.floor(pw / 60))));
+    let ys = XP.niceStep(ymax - ymin, Math.max(3, Math.min(5, Math.floor(ph / 40))));
+    /* ylog: the y values given are base-10 logarithms; ticks fall on whole powers and read 10ⁿ */
+    const SUP = { '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' };
+    if (o.ylog) ys = Math.max(1, Math.round(ys));
+    const ylab = v => o.ylog ? '10' + String(Math.round(v)).split('').map(c => SUP[c] || c).join('') : XP.tick(v, ys);
     ctx.lineWidth = 1; ctx.strokeStyle = P.grid; ctx.fillStyle = P.muted; ctx.font = '11.5px ' + F;
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
     for (let v = Math.ceil(xmin / xs - 1e-9) * xs; v <= xmax + xs * 1e-9; v += xs) { const px = X(v); ctx.beginPath(); ctx.moveTo(px, m.t); ctx.lineTo(px, m.t + ph); ctx.stroke(); ctx.fillText(XP.tick(v, xs), px, m.t + ph + 4); }
     ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-    for (let v = Math.ceil(ymin / ys - 1e-9) * ys; v <= ymax + ys * 1e-9; v += ys) { const py = Y(v); ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + pw, py); ctx.stroke(); ctx.fillText(XP.tick(v, ys), m.l - 5, py); }
+    for (let v = Math.ceil(ymin / ys - 1e-9) * ys; v <= ymax + ys * 1e-9; v += ys) { const py = Y(v); ctx.beginPath(); ctx.moveTo(m.l, py); ctx.lineTo(m.l + pw, py); ctx.stroke(); ctx.fillText(ylab(v), m.l - 5, py); }
     ctx.fillStyle = P.text; ctx.font = '12.5px ' + F; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
     ctx.fillText(o.xlabel, m.l + pw / 2, h - 2);
     ctx.save(); ctx.translate(12, m.t + ph / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = 'middle'; ctx.fillText(o.ylabel, 0, 0); ctx.restore();
@@ -146,10 +151,24 @@
       if (!s.xs.length) continue;
       ctx.strokeStyle = s.color; ctx.lineWidth = s.width || 2; ctx.setLineDash(s.dash || []);
       ctx.beginPath();
-      for (let i = 0; i < s.xs.length; i++) { const px = X(s.xs[i]), py = Y(s.ys[i]); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+      /* a value that is not a number (NaN) breaks the line, so one series can hold separate pieces */
+      let pen = false;
+      for (let i = 0; i < s.xs.length; i++) {
+        const x = s.xs[i], y = s.ys[i];
+        if (!isFinite(x) || !isFinite(y)) { pen = false; continue; }
+        const px = X(x), py = Y(y); pen ? ctx.lineTo(px, py) : ctx.moveTo(px, py); pen = true;
+      }
       ctx.stroke();
     }
-    ctx.setLineDash([]); ctx.restore();
+    ctx.setLineDash([]);
+    /* dots: [{x, y, color, r, ring}] drawn on top of the lines; ring = an open circle */
+    for (const d of (o.dots || [])) {
+      if (!isFinite(d.x) || !isFinite(d.y)) continue;
+      ctx.beginPath(); ctx.arc(X(d.x), Y(d.y), d.r || 5, 0, 2 * Math.PI);
+      if (d.ring) { ctx.strokeStyle = d.color; ctx.lineWidth = 2; ctx.stroke(); }
+      else { ctx.fillStyle = d.color; ctx.fill(); ctx.strokeStyle = P.bg; ctx.lineWidth = 1.5; ctx.stroke(); }
+    }
+    ctx.restore();
     ctx.strokeStyle = P.axis; ctx.lineWidth = 1; ctx.strokeRect(m.l + .5, m.t + .5, pw, ph);
     ctx.font = '12px ' + F;
     for (const it of items) {

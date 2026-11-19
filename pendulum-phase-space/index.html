@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pendulum Phase Space</title>
+<meta name="description" content="A simple and a double pendulum, each run twice from almost the same start: watch one stay predictable and the other become chaotic, in the picture and in phase space.">
+<link rel="stylesheet" href="../theme/explorables.css">
+<script src="../theme/explorables.js"></script>
+<style>
+.card.main canvas{cursor:grab}
+.card.main canvas.drag{cursor:grabbing}
+.card.phase{flex:1.3 1 0}
+.card.main.grow{flex:2.3 1 0}
+#energy{min-height:17px}
+[data-mode].off{display:none!important}
+.xp-dial select{width:100%}
+@media (min-width:1000px){.xp-results .card canvas{min-height:110px}}
+@media (max-width:999px){.card.phase,.card.main.grow{flex:none}}
+</style>
+</head>
+<body>
+<div class="xp-app fit">
+  <header class="xp-header">
+    <a class="xp-back" href="../">← Explorables</a>
+    <h1>Pendulum in phase space: order and chaos</h1>
+    <span class="xp-spacer"></span>
+    <button class="btn btn-quiet xp-theme" type="button"></button>
+  </header>
+
+  <section class="xp-controls">
+    <div class="xp-deck">
+      <div class="xp-about">
+        <div class="xp-row">
+          <label class="xp-field">System
+            <select id="mode"><option value="simple">Simple pendulum</option><option value="double" selected>Double pendulum</option></select>
+          </label>
+          <button class="btn" type="button" data-open="notes">Notes</button>
+          <button class="btn" type="button" data-open="settings">Settings</button>
+        </div>
+        <p id="about"></p>
+        <p id="try"></p>
+      </div>
+      <div class="xp-run">
+        <div class="xp-run-buttons">
+          <button class="btn btn-primary" type="button" id="play">▶ Play</button>
+          <button class="btn" type="button" id="step">One step</button>
+          <button class="btn" type="button" id="reset">Reset</button>
+        </div>
+        <span class="xp-status" id="status"></span>
+        <span class="hint">Play runs the simulation; One step moves it forward 0.1 s; Reset puts every pendulum back at its start. Drag a bob of run 1 in the picture to choose where it starts.</span>
+        <label class="xp-dial" style="max-width:none;flex:none;margin-top:4px"><span class="top">Playback speed<span class="val" id="speedV"></span></span><input type="range" id="speed" min="0" max="5" step="1" value="3"><span class="hint">Animation speed compared with real time. It does not change the physics.</span></label>
+      </div>
+      <div class="xp-dialgrid">
+        <label class="xp-dial"><span class="top"><span id="th1Name"></span><span class="val" id="th1V"></span></span><input type="range" id="th1" min="-3.1" max="3.1" step="0.01" value="2"><span class="hint" id="th1Hint"></span></label>
+        <label class="xp-dial" data-mode="double"><span class="top">Lower angle at the start, θ₂(0)<span class="val" id="th2V"></span></span><input type="range" id="th2" min="-3.1" max="3.1" step="0.01" value="1"><span class="hint">Angle of the lower rod from the vertical when the run starts.</span></label>
+        <label class="xp-dial" data-mode="simple"><span class="top">Angular velocity at the start, ω(0)<span class="val" id="w0V"></span></span><input type="range" id="w0" min="-8" max="8" step="0.1" value="0"><span class="hint">How fast the pendulum turns when the run starts (rad/s).</span></label>
+        <label class="xp-dial"><span class="top">Damping b<span class="val" id="bV"></span></span><input type="range" id="b" min="0" max="1" step="0.01" value="0"><span class="hint" id="bHint"></span></label>
+        <label class="xp-dial"><span class="top">Difference in start, Δθ (rad)</span><select id="dth"></select><span class="hint" id="dthHint"></span></label>
+      </div>
+    </div>
+  </section>
+
+  <main class="xp-results">
+    <div class="xp-col">
+      <div class="card main grow"><h2 id="viewTitle"></h2><canvas id="view"></canvas><p class="cap" id="energy"></p></div>
+      <div class="card grow">
+        <h2>Gap between run 1 and run 2<span class="sub">distance between their states; on this scale a straight rising line means exponential growth</span></h2>
+        <canvas id="cvG"></canvas>
+      </div>
+    </div>
+    <div class="xp-col">
+      <div class="card phase"><h2 id="phaseTitle"></h2><canvas id="cvP"></canvas></div>
+      <div class="card grow"><h2 id="angTitle"></h2><canvas id="cvA"></canvas></div>
+      <div class="card grow"><h2 id="velTitle"></h2><canvas id="cvW"></canvas></div>
+    </div>
+  </main>
+</div>
+
+<aside class="xp-panel" id="settings" aria-label="Settings">
+  <header><h2>Settings</h2><span class="xp-spacer"></span><button class="btn" type="button" data-close>Close</button></header>
+  <div class="body">
+    <div class="opt"><label for="runs">Number of runs</label>
+      <select id="runs"><option>1</option><option selected>2</option><option>5</option><option>10</option></select>
+      <p class="hint">How many copies of the pendulum run at once. Each starts Δθ further than the one before; everything else is the same.</p></div>
+    <div class="opt" data-mode="double"><label for="m1">Upper mass m₁ (kg): <b id="m1V"></b></label><input type="range" id="m1" min="0.2" max="3" step="0.1" value="1"></div>
+    <div class="opt" data-mode="double"><label for="m2">Lower mass m₂ (kg): <b id="m2V"></b></label><input type="range" id="m2" min="0.2" max="3" step="0.1" value="1"></div>
+    <div class="opt"><label for="l1"><span id="l1Name"></span>: <b id="l1V"></b></label><input type="range" id="l1" min="0.3" max="2" step="0.1" value="1"></div>
+    <div class="opt" data-mode="double"><label for="l2">Lower rod length l₂ (m): <b id="l2V"></b></label><input type="range" id="l2" min="0.3" max="2" step="0.1" value="1"></div>
+    <div class="opt"><label for="g">Gravitational acceleration g (m/s²)</label>
+      <select id="g"><option value="9.81" selected>9.81 (Earth)</option><option value="1.62">1.62 (Moon)</option><option value="3.71">3.71 (Mars)</option><option value="24.79">24.79 (Jupiter)</option></select></div>
+    <div class="opt" data-mode="double"><label for="w1">Upper angular velocity at the start, ω₁(0) (rad/s): <b id="w1V"></b></label><input type="range" id="w1" min="-6" max="6" step="0.1" value="1"></div>
+    <div class="opt" data-mode="double"><label for="w2">Lower angular velocity at the start, ω₂(0) (rad/s): <b id="w2V"></b></label><input type="range" id="w2" min="-6" max="6" step="0.1" value="1"></div>
+    <div class="opt"><label for="tmax">Length of the run (s)</label>
+      <select id="tmax"><option>20</option><option selected>60</option><option>120</option></select></div>
+    <div class="opt" data-mode="double"><label for="which">The plots show</label>
+      <select id="which"><option value="2" selected>the lower pendulum: θ₂ and ω₂</option><option value="1">the upper pendulum: θ₁ and ω₁</option></select>
+      <p class="hint">The double pendulum's state is four numbers, so its full phase space has four dimensions. The plots show two of them at a time.</p></div>
+    <div class="opt"><label class="chk"><input type="checkbox" id="wrap"> Show angles between −π and π</label>
+      <p class="hint">An angle of θ + 2π is the same position as θ. When a pendulum goes over the top, its angle keeps growing; ticked, every angle is brought back into −π to π, so the line jumps from one edge of the plot to the other.</p></div>
+    <div class="opt"><label class="chk"><input type="checkbox" id="trail" checked> Show the path of the lowest bob over the last 3 s</label></div>
+    <div class="opt"><label class="chk"><input type="checkbox" id="guides" checked> Show the vertical lines and the angles θ on run 1</label></div>
+    <div class="opt" data-mode="simple"><label class="chk"><input type="checkbox" id="pred" checked> Show the small-angle prediction for run 1 (dashed)</label>
+      <p class="hint">The solution of the equation with sin θ replaced by θ. Notes explains it.</p></div>
+    <p class="hint">Changing any setting except the playback speed and what is shown starts a new run. Changing the system puts back that system's starting values.</p>
+    <p class="hint">Keys: Space = play or pause, S = one step, R = reset.</p>
+  </div>
+</aside>
+
+<aside class="xp-panel" id="notes" aria-label="Notes">
+  <header><h2>Notes</h2><span class="xp-spacer"></span><button class="btn" type="button" data-close>Close</button></header>
+  <div class="body notes">
+    <h3>The question</h3>
+    <p>If you know exactly how a pendulum starts, can you say where it will be one minute later? For a simple pendulum, yes. For a double pendulum, which is two pendulums joined end to end, the answer is no, even though its motion obeys equations with no randomness in them. This page runs each pendulum several times from starts that differ by a tiny angle Δθ, so you can see the difference.</p>
+
+    <h3>Dynamical systems and phase space</h3>
+    <p>A <b>dynamical system</b> is a system whose state changes with time according to a fixed rule, usually a set of differential equations. The <b>state</b> is the smallest set of numbers that fixes the whole future motion. For a pendulum, the state is its angle θ and its angular velocity ω = dθ/dt: knowing where it is but not how fast it moves is not enough.</p>
+    <p><b>Phase space</b> is the space of all possible states. For the simple pendulum it is a plane with θ on one axis and ω on the other. As time passes, the state moves through phase space and traces a curve called a <b>trajectory</b>. A <b>critical point</b> is a state where every rate of change is zero, so a system placed exactly there stays there.</p>
+
+    <h3>The simple pendulum</h3>
+    <p>A bob hangs from a pivot on a rigid rod of length l with negligible mass. θ is the angle of the rod from the vertical. The weight mg has a part mg sin θ along the path of the bob, which pulls it back toward the bottom. With a resistance proportional to the angular velocity, Newton's second law for rotation gives the second-order ODE (ordinary differential equation):</p>
+    <span class="eq">d²θ/dt² + b dθ/dt + (g/l) sin θ = 0</span>
+    <p>g is the gravitational acceleration and b is the damping coefficient (unit 1/s), which says how strongly the resistance slows the motion. Writing ω = dθ/dt turns this into a system of two first-order ODEs, the form a computer solves:</p>
+    <span class="eq">dθ/dt = ω<br>dω/dt = −bω − (g/l) sin θ</span>
+    <p>The critical points are where ω = 0 and sin θ = 0: θ = 0 (hanging straight down) and θ = π (balanced straight up).</p>
+
+    <h3>Small angles: a prediction to compare with</h3>
+    <p>For small angles, sin θ ≈ θ, and the equation becomes linear: θ'' + bθ' + (g/l)θ = 0. Trying θ = e<sup>λt</sup> gives the characteristic equation and its roots (eigenvalues):</p>
+    <span class="eq">λ² + bλ + g/l = 0 &nbsp;⇒&nbsp; λ = −b/2 ± i ω<sub>d</sub>, &nbsp; ω<sub>d</sub> = √(g/l − b²/4)</span>
+    <p>So the pendulum swings at the angular frequency ω<sub>d</sub> inside an envelope e<sup>−bt/2</sup> that shrinks with time. With the starting values θ(0) and ω(0):</p>
+    <span class="eq">θ(t) = e<sup>−bt/2</sup> [ θ(0) cos ω<sub>d</sub>t + ((ω(0) + bθ(0)/2) / ω<sub>d</sub>) sin ω<sub>d</sub>t ]</span>
+    <p>This is the dashed curve on the simple pendulum's plots. The eigenvalues classify the critical point θ = 0, ω = 0:</p>
+    <ul>
+      <li><b>b &gt; 0:</b> complex eigenvalues with a negative real part. The point is an <b>asymptotically stable spiral</b>: every nearby trajectory spirals into it.</li>
+      <li><b>b = 0:</b> eigenvalues ±i√(g/l), purely imaginary. The trajectories are closed curves around the point, and the motion is periodic, with period T = 2π√(l/g) (2.006 s for l = 1 m on Earth).</li>
+    </ul>
+    <p>The prediction is exact only for small angles. A swing that starts at θ(0) = 1 rad, released from rest without damping, takes 2.14 s instead of 2.006 s, about 7% longer, so the simulation slowly falls behind the dashed curve. At θ(0) = 0.2 rad the difference is 0.25%.</p>
+
+    <h3>The double pendulum</h3>
+    <p>A second rod of length l<sub>2</sub> with a bob of mass m<sub>2</sub> hangs from the first bob (mass m<sub>1</sub>, rod length l<sub>1</sub>). θ<sub>1</sub> and θ<sub>2</sub> are the angles of the two rods from the vertical, and ω<sub>1</sub>, ω<sub>2</sub> their angular velocities. The equations of motion are two coupled second-order ODEs, with damping coefficients b<sub>1</sub> and b<sub>2</sub>:</p>
+    <span class="eq">(m<sub>1</sub>+m<sub>2</sub>) l<sub>1</sub> θ̈<sub>1</sub> + m<sub>2</sub> l<sub>2</sub> θ̈<sub>2</sub> cos(θ<sub>1</sub>−θ<sub>2</sub>) + m<sub>2</sub> l<sub>2</sub> θ̇<sub>2</sub>² sin(θ<sub>1</sub>−θ<sub>2</sub>) + (m<sub>1</sub>+m<sub>2</sub>) g sin θ<sub>1</sub> + b<sub>1</sub>θ̇<sub>1</sub> = 0<br>
+    m<sub>2</sub> l<sub>2</sub> θ̈<sub>2</sub> + m<sub>2</sub> l<sub>1</sub> θ̈<sub>1</sub> cos(θ<sub>1</sub>−θ<sub>2</sub>) − m<sub>2</sub> l<sub>1</sub> θ̇<sub>1</sub>² sin(θ<sub>1</sub>−θ<sub>2</sub>) + m<sub>2</sub> g sin θ<sub>2</sub> + b<sub>2</sub>θ̇<sub>2</sub> = 0</span>
+    <p>A dot means a derivative with respect to time. The state is now four numbers (θ<sub>1</sub>, ω<sub>1</sub>, θ<sub>2</sub>, ω<sub>2</sub>), so the system becomes four first-order ODEs: dθ<sub>1</sub>/dt = ω<sub>1</sub>, dθ<sub>2</sub>/dt = ω<sub>2</sub>, and the two equations above solved for the two angular accelerations. Writing Δ = θ<sub>1</sub> − θ<sub>2</sub> and M = m<sub>1</sub> + m<sub>2</sub>:</p>
+    <span class="eq">dω<sub>1</sub>/dt = [ −m<sub>2</sub>l<sub>1</sub>ω<sub>1</sub>² sinΔ cosΔ − m<sub>2</sub>l<sub>2</sub>ω<sub>2</sub>² sinΔ + m<sub>2</sub>g sinθ<sub>2</sub> cosΔ − Mg sinθ<sub>1</sub> − b<sub>1</sub>ω<sub>1</sub> + b<sub>2</sub>ω<sub>2</sub> cosΔ ] / [ l<sub>1</sub>(m<sub>1</sub> + m<sub>2</sub> sin²Δ) ]<br><br>
+    dω<sub>2</sub>/dt = [ Ml<sub>1</sub>ω<sub>1</sub>² sinΔ + m<sub>2</sub>l<sub>2</sub>ω<sub>2</sub>² sinΔ cosΔ + Mg sinθ<sub>1</sub> cosΔ − Mg sinθ<sub>2</sub> + b<sub>1</sub>ω<sub>1</sub> cosΔ − (M/m<sub>2</sub>) b<sub>2</sub>ω<sub>2</sub> ] / [ l<sub>2</sub>(m<sub>1</sub> + m<sub>2</sub> sin²Δ) ]</span>
+    <p>This page uses b<sub>1</sub> = b<sub>2</sub> = b (unit kg·m/s). It solves the two second-order equations as a 2 × 2 linear system for θ̈<sub>1</sub> and θ̈<sub>2</sub> at every time step, which gives exactly these formulas. The time stepping uses the fourth-order Runge-Kutta method with a step of 1 ms. With b = 0 no energy is lost, and the line under the picture shows that the total energy stays at its starting value, which checks the calculation.</p>
+
+    <h3>Chaos: sensitive dependence on the start</h3>
+    <p>Both systems are <b>deterministic</b>: the same start always gives the same motion. The difference is what happens to two starts that are almost the same. In the simple pendulum, the gap between them stays about as small as it began, or shrinks with damping. In the double pendulum at large angles, the gap grows on average exponentially,</p>
+    <span class="eq">δ(t) ≈ δ<sub>0</sub> e<sup>λt</sup></span>
+    <p>where δ<sub>0</sub> is the gap at the start and λ, the <b>Lyapunov exponent</b>, is the average rate at which nearby trajectories separate. The gap stops growing only when it is as large as the motion itself. A system with this behaviour is called <b>chaotic</b>. The time for which a prediction stays within a tolerance δ<sub>tol</sub> is</p>
+    <span class="eq">t<sub>p</sub> ≈ (1/λ) ln(δ<sub>tol</sub> / δ<sub>0</sub>)</span>
+    <p>Because the start enters only through a logarithm, measuring it 1000 times more precisely adds only the fixed amount ln(1000)/λ to the time of a good prediction. The gap plot shows δ(t) on a logarithmic scale, where exponential growth is a straight rising line.</p>
+    <p>The double pendulum is not always chaotic. At small angles it swings in a regular pattern and nearby starts stay together. Damping also ends the chaos in time, because it removes energy until the swings are small.</p>
+
+    <h3>What to look for</h3>
+    <ol>
+      <li>Simple pendulum, default settings: both runs spiral into the critical point θ = 0, ω = 0 (the open circle in phase space), and the gap stays small. Set b = 0: the trajectory becomes a closed curve, and the motion repeats.</li>
+      <li>Simple pendulum, θ(0) = 0.2: the simulation and the dashed prediction agree. Set θ(0) = 2: the swings take longer than predicted, and the curves drift apart.</li>
+      <li>Simple pendulum, ω(0) = 6.5 rad/s with b = 0 and θ(0) = 0: the pendulum goes over the top and keeps turning; ω never reaches zero. Try 6.2 rad/s: now it swings back. The boundary between the two is the curve in phase space through the point θ = π, ω = 0.</li>
+      <li>Double pendulum, default settings: the two runs look identical for several seconds, then move completely differently. The gap rises along a rough straight line on the logarithmic scale before levelling off.</li>
+      <li>Make Δθ 10 or 100 times smaller: the runs stay together only a few seconds longer.</li>
+      <li>Double pendulum with θ₁(0) = θ₂(0) = 0.2: the motion is regular and the gap stays small. Large angles are needed for chaos.</li>
+      <li>Set 10 runs: in the simple pendulum all 10 move as a tight group; in the double pendulum the group spreads across the whole picture.</li>
+    </ol>
+
+    <h3>Practical problem: stability and prediction</h3>
+    <ol type="a">
+      <li>Write the simple pendulum with g/l = 9.81 s⁻² and b = 0.1 s⁻¹ as a system of first-order ODEs and find its critical points.</li>
+      <li>Near θ = 0, sin θ ≈ θ. Find the eigenvalues and classify the critical point θ = 0, ω = 0.</li>
+      <li>Near θ = π, write θ = π + φ, so that sin θ ≈ −φ. Find the eigenvalues and classify the critical point θ = π, ω = 0.</li>
+      <li>In a double pendulum the gap between two runs grows as δ(t) = δ<sub>0</sub> e<sup>λt</sup> with λ = 2 s⁻¹. The start is known to δ<sub>0</sub> = 10⁻³ rad. How long until the gap reaches 1 rad? How long if the start is known 1000 times more precisely?</li>
+    </ol>
+    <details><summary>Show the solution</summary>
+      <p><b>(a)</b> dθ/dt = ω and dω/dt = −0.1ω − 9.81 sin θ. Both are zero when ω = 0 and sin θ = 0, so the critical points are (θ, ω) = (0, 0) and (π, 0), and the same points shifted by whole turns 2π.</p>
+      <p><b>(b)</b> The linear system is dθ/dt = ω, dω/dt = −9.81θ − 0.1ω, with matrix A = [0 1; −9.81 −0.1]. The characteristic equation det(A − λI) = 0 is λ² + 0.1λ + 9.81 = 0, so λ = −0.05 ± i√(9.81 − 0.0025) = −0.05 ± 3.132i. The eigenvalues are complex with a negative real part: an asymptotically stable spiral. The pendulum swings with angular frequency 3.132 rad/s while the swings shrink as e<sup>−0.05t</sup>.</p>
+      <p><b>(c)</b> With θ = π + φ, dφ/dt = ω and dω/dt = −0.1ω − 9.81 sin(π + φ) ≈ −0.1ω + 9.81φ. The characteristic equation is λ² + 0.1λ − 9.81 = 0, so λ = (−0.1 ± √(0.01 + 39.24))/2, giving λ = 3.082 and λ = −3.182. One eigenvalue is positive and one negative: an unstable saddle point. A pendulum balanced upright falls away at the slightest disturbance.</p>
+      <p><b>(d)</b> Solve δ<sub>0</sub>e<sup>λt</sup> = 1 for t: t = ln(1/δ<sub>0</sub>)/λ = ln(1000)/2 = 3.45 s. With δ<sub>0</sub> = 10⁻⁶ rad, t = ln(10⁶)/2 = 6.91 s. A start known 1000 times more precisely gives a prediction that lasts only twice as long.</p>
+    </details>
+    <p class="src">Based on the ChE Analysis 3020 lecture notes on dynamical systems and phase space.</p>
+  </div>
+</aside>
+
+<script>
+(function(){
+'use strict';
+const fmt=XP.fmt, setup=XP.setup;
+const $=id=>document.getElementById(id);
+const SPEEDS=[0.1,0.25,0.5,1,2,4];
+const DTHS=[0.00001,0.0001,0.001,0.01,0.05,0.1,0.2,0.5];
+const DEFAULTS={
+  simple:{th1:1,w0:0,b:0.1,dth:0.01,runs:2},
+  double:{th1:2,th2:1,w1:1,w2:1,b:0,dth:0.001,runs:2}
+};
+const wrapA=a=>a-2*Math.PI*Math.round(a/(2*Math.PI));
+const deg=a=>Math.round(a*180/Math.PI);
+
+/* ---------- the pendulum model ---------- */
+/* state of one run: [θ1, ω1, θ2, ω2]; the simple pendulum uses only θ1 and ω1 */
+class Sim{
+  constructor(o){
+    Object.assign(this,o);           // mode, m1, m2, l1, l2, g, b, tmax, starts
+    this.h=0.001; this.rec=20;       // time step 1 ms; one recorded point every 20 steps = 0.02 s
+    this.t=0; this.steps=0;
+    this.S=this.starts.map(s=>Float64Array.from(s));
+    this.k=[0,1,2,3,4].map(()=>new Float64Array(4));
+    this.H={t:[0],runs:this.S.map(s=>({th1:[s[0]],w1:[s[1]],th2:[s[2]],w2:[s[3]]}))};
+    this.E0=this.energy(this.S[0]);
+  }
+  deriv(s,o){
+    const g=this.g,b=this.b;
+    if(this.mode==='simple'){o[0]=s[1]; o[1]=-b*s[1]-(g/this.l1)*Math.sin(s[0]); o[2]=0; o[3]=0; return;}
+    const m1=this.m1,m2=this.m2,l1=this.l1,l2=this.l2,M=m1+m2;
+    const [t1,w1,t2,w2]=s, D=t1-t2, c=Math.cos(D), sn=Math.sin(D);
+    // the two second-order equations as a 2x2 linear system A [θ1'', θ2''] = r
+    const a11=M*l1, a12=m2*l2*c, a21=m2*l1*c, a22=m2*l2;
+    const r1=-m2*l2*w2*w2*sn-M*g*Math.sin(t1)-b*w1;
+    const r2= m2*l1*w1*w1*sn-m2*g*Math.sin(t2)-b*w2;
+    const det=a11*a22-a12*a21;
+    o[0]=w1; o[1]=(r1*a22-a12*r2)/det; o[2]=w2; o[3]=(a11*r2-a21*r1)/det;
+  }
+  rk4(s){
+    const h=this.h,[k1,k2,k3,k4,tmp]=this.k;
+    this.deriv(s,k1); for(let i=0;i<4;i++) tmp[i]=s[i]+h/2*k1[i];
+    this.deriv(tmp,k2); for(let i=0;i<4;i++) tmp[i]=s[i]+h/2*k2[i];
+    this.deriv(tmp,k3); for(let i=0;i<4;i++) tmp[i]=s[i]+h*k3[i];
+    this.deriv(tmp,k4); for(let i=0;i<4;i++) s[i]+=h/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]);
+  }
+  /* total energy: J for the double pendulum; per kilogram of bob (J/kg) for the simple one, whose equation has no mass */
+  energy(s){
+    const g=this.g,l1=this.l1;
+    if(this.mode==='simple') return 0.5*l1*l1*s[1]*s[1]+g*l1*(1-Math.cos(s[0]));
+    const m1=this.m1,m2=this.m2,l2=this.l2,M=m1+m2,[t1,w1,t2,w2]=s;
+    return 0.5*M*l1*l1*w1*w1+0.5*m2*l2*l2*w2*w2+m2*l1*l2*w1*w2*Math.cos(t1-t2)-M*g*l1*Math.cos(t1)-m2*g*l2*Math.cos(t2);
+  }
+  get done(){return this.t>=this.tmax-1e-9;}
+  advance(dt){
+    const n=Math.round(dt/this.h);
+    for(let j=0;j<n&&!this.done;j++){
+      for(const s of this.S) this.rk4(s);
+      this.steps++; this.t=this.steps*this.h;
+      if(this.steps%this.rec===0){
+        this.H.t.push(this.t);
+        this.S.forEach((s,i)=>{const r=this.H.runs[i]; r.th1.push(s[0]); r.w1.push(s[1]); r.th2.push(s[2]); r.w2.push(s[3]);});
+      }
+    }
+  }
+  gap(i){ // distance in phase space between run 1 and run 2 at recorded point i
+    const a=this.H.runs[0],b=this.H.runs[1];
+    const d=[a.th1[i]-b.th1[i],a.w1[i]-b.w1[i],a.th2[i]-b.th2[i],a.w2[i]-b.w2[i]];
+    return Math.hypot(...d);
+  }
+}
+
+/* the small-angle solution of the simple pendulum for run 1: [θ(t), ω(t)] */
+function smallAngle(sim,t){
+  const b=sim.b,w2=sim.g/sim.l1,th0=sim.starts[0][0],om0=sim.starts[0][1],a=b/2;
+  const disc=w2-a*a;
+  if(disc>1e-12){
+    const wd=Math.sqrt(disc),C=th0,D=(om0+a*th0)/wd,e=Math.exp(-a*t),c=Math.cos(wd*t),s=Math.sin(wd*t);
+    return [e*(C*c+D*s), e*((-a*C+D*wd)*c+(-a*D-C*wd)*s)];
+  }
+  if(disc<-1e-12){
+    const q=Math.sqrt(-disc),r1=-a+q,r2=-a-q,A=(om0-r2*th0)/(r1-r2),B=th0-A;
+    return [A*Math.exp(r1*t)+B*Math.exp(r2*t), A*r1*Math.exp(r1*t)+B*r2*Math.exp(r2*t)];
+  }
+  const B=om0+a*th0,e=Math.exp(-a*t); return [e*(th0+B*t), e*(B-a*(th0+B*t))];
+}
+
+/* ---------- the explorable ---------- */
+class App{
+  constructor(){
+    this.mode='double'; this.playing=false; this.drag=null; this.last=null;
+    $('dth').innerHTML=DTHS.map(v=>`<option value="${v}">${v}</option>`).join('');
+    this.bind(); this.applyMode(true);
+  }
+  bind(){
+    $('play').onclick=()=>this.togglePlay();
+    $('step').onclick=()=>{this.setPlaying(false); this.sim.advance(0.1); this.dirty=true;};
+    $('reset').onclick=()=>this.rebuild();
+    $('mode').addEventListener('change',()=>{this.mode=$('mode').value; this.applyMode(true);});
+    $('speed').addEventListener('input',()=>this.labels());
+    for(const id of ['th1','th2','w0','b','m1','m2','l1','l2','w1','w2']) $(id).addEventListener('input',()=>this.rebuild());
+    for(const id of ['dth','runs','g','tmax']) $(id).addEventListener('change',()=>this.rebuild());
+    for(const id of ['which','wrap','trail','guides','pred']) $(id).addEventListener('change',()=>{this.lim={}; this.applyMode(false); this.dirty=true;});
+    window.addEventListener('resize',()=>{this.dirty=true;});
+    XP.onTheme(()=>{this.dirty=true;});
+    document.addEventListener('keydown',e=>{
+      if(XP.panelOpen&&XP.panelOpen()) return;
+      const t=e.target; if(t.tagName==='SELECT'||(t.tagName==='INPUT'&&t.type!=='checkbox'&&t.type!=='range')) return;
+      if(e.code==='Space'){e.preventDefault(); this.togglePlay();}
+      else if(e.key==='s'||e.key==='S') $('step').click();
+      else if(e.key==='r'||e.key==='R') this.rebuild();
+    });
+    document.addEventListener('click',e=>{const t=e.target; if(t.tagName==='BUTTON'||(t.tagName==='INPUT'&&t.type==='checkbox')) setTimeout(()=>t.blur(),0);});
+    // dragging a bob of run 1 sets where it starts
+    const cv=$('view');
+    cv.addEventListener('pointerdown',e=>{
+      const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top, G=this.geom; if(!G) return;
+      const P=this.bobs(this.sim.S[0]); let best=null,bd=28;
+      P.forEach((p,i)=>{const d=Math.hypot(G.X(p[0])-x,G.Y(p[1])-y); if(d<bd){bd=d; best=i;}});
+      if(best===null) return;
+      this.drag=best; this.setPlaying(false); cv.classList.add('drag'); cv.setPointerCapture(e.pointerId); this.dragTo(x,y);
+    });
+    cv.addEventListener('pointermove',e=>{if(this.drag===null) return; const r=cv.getBoundingClientRect(); this.dragTo(e.clientX-r.left,e.clientY-r.top);});
+    const up=()=>{this.drag=null; cv.classList.remove('drag');};
+    cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+  }
+  dragTo(x,y){
+    const G=this.geom; if(!G) return;
+    const wx=G.ix(x), wy=G.iy(y);
+    let ox=0,oy=0;
+    if(this.drag===1){const p=this.bobs(this.sim.S[0])[0]; ox=p[0]; oy=p[1];}
+    let a=Math.atan2(wx-ox,-(wy-oy)); a=Math.max(-3.1,Math.min(3.1,a));
+    const id=this.drag===0?'th1':'th2';
+    $(id).value=a.toFixed(2);
+    this.rebuild();
+  }
+  applyMode(reset){
+    const m=this.mode, dbl=m==='double';
+    document.querySelectorAll('[data-mode]').forEach(el=>el.classList.toggle('off',el.dataset.mode!==m));
+    if(reset){
+      const D=DEFAULTS[m];
+      for(const k of ['th1','th2','w0','b','w1','w2']) if(D[k]!==undefined) $(k).value=D[k];
+      $('dth').value=String(D.dth); $('runs').value=String(D.runs);
+    }
+    const w=dbl?$('which').value:'1';
+    $('th1Name').textContent=dbl?'Upper angle at the start, θ₁(0)':'Angle at the start, θ(0)';
+    $('th1Hint').textContent=(dbl?'Angle of the upper rod from the vertical':'Angle of the rod from the vertical')+' when the run starts: 0 is straight down, ±3.14 (±π) straight up.';
+    $('bHint').textContent=dbl?'How strongly friction at the joints slows the motion (kg·m/s). 0 means no energy is lost.':'How strongly friction slows the motion (1/s). 0 means no energy is lost.';
+    $('dthHint').textContent=dbl?'Run 2 starts with its lower angle θ₂ larger by Δθ; everything else is the same as run 1.':'Run 2 starts with its angle θ larger by Δθ; everything else is the same as run 1.';
+    $('l1Name').textContent=dbl?'Upper rod length l₁ (m)':'Rod length l (m)';
+    const sub=dbl?(w==='2'?'θ₂ and ω₂ of the lower pendulum':'θ₁ and ω₁ of the upper pendulum'):'θ and ω';
+    const nm=dbl?(w==='2'?'lower pendulum':'upper pendulum'):'pendulum';
+    $('viewTitle').innerHTML=dbl?'The double pendulum, every run drawn at once<span class="sub">drag a bob of run 1 to set its start</span>':'The simple pendulum, every run drawn at once<span class="sub">drag the bob of run 1 to set its start</span>';
+    $('phaseTitle').innerHTML=`Phase space of the ${nm}<span class="sub">angular velocity against angle: each point is one state</span>`;
+    $('angTitle').innerHTML=`Angle against time<span class="sub">${dbl?(w==='2'?'θ₂, the lower rod':'θ₁, the upper rod'):'θ'} for each run</span>`;
+    $('velTitle').innerHTML=`Angular velocity against time<span class="sub">${dbl?(w==='2'?'ω₂ = dθ₂/dt':'ω₁ = dθ₁/dt'):'ω = dθ/dt'} for each run</span>`;
+    $('about').innerHTML=dbl
+      ?'A <b>double pendulum</b> is a pendulum hung from the bob of another. Its state is four numbers: the rod angles θ₁, θ₂ from the vertical and their angular velocities ω₁, ω₂. <span style="color:var(--measured);font-weight:700">Run 1</span> and <span style="color:var(--c1);font-weight:700">run 2</span> obey the same equations, with no randomness, and start almost identically: only θ₂ differs, by Δθ. Yet they soon move completely differently. This is <b>chaos</b>: the future depends so strongly on the start that it cannot be predicted for long.'
+      :'A <b>simple pendulum</b> is a mass on a rod of length l swinging about a pivot. Its state is two numbers: the rod angle θ from the vertical and the angular velocity ω = dθ/dt. <span style="color:var(--measured);font-weight:700">Run 1</span> and <span style="color:var(--c1);font-weight:700">run 2</span> start with angles that differ by Δθ. <b>Phase space</b> plots ω against θ, so each state is one point and the motion is a path of points.';
+    $('try').innerHTML=dbl
+      ?'<b>Try it:</b> press Play. The two pendulums move as one for a few seconds, then separate; the gap plot shows how fast. Make Δθ 100 times smaller and play again: they stay together only a few seconds longer. Notes explains the theory.'
+      :'<b>Try it:</b> press Play. Both runs stay together and spiral into the resting state θ = 0, ω = 0. Set the damping b to 0 and the path becomes a closed loop. Then choose the double pendulum. Notes explains the theory.';
+    if(reset) this.rebuild(); else this.labels();
+  }
+  labels(){
+    const v=id=>+$(id).value, rad=id=>`${v(id).toFixed(2)} rad (${deg(v(id))}°)`;
+    $('th1V').textContent=rad('th1'); $('th2V').textContent=rad('th2');
+    $('w0V').textContent=v('w0').toFixed(1)+' rad/s'; $('bV').textContent=v('b').toFixed(2);
+    $('speedV').textContent=SPEEDS[v('speed')]+'×';
+    for(const id of ['m1','m2','l1','l2']) $(id+'V').textContent=v(id).toFixed(1);
+    for(const id of ['w1','w2']) $(id+'V').textContent=v(id).toFixed(1);
+  }
+  rebuild(){
+    this.labels();
+    const v=id=>+$(id).value, dbl=this.mode==='double', n=v('runs'), dth=v('dth');
+    const starts=[];
+    for(let i=0;i<n;i++){
+      starts.push(dbl?[v('th1'),v('w1'),v('th2')+i*dth,v('w2')]:[v('th1')+i*dth,v('w0'),0,0]);
+    }
+    this.sim=new Sim({mode:this.mode,m1:v('m1'),m2:v('m2'),l1:v('l1'),l2:v('l2'),g:v('g'),b:v('b'),tmax:v('tmax'),starts});
+    this.lim={}; this.dirty=true;
+  }
+  setPlaying(p){this.playing=p; $('play').textContent=p?'❚❚ Pause':'▶ Play';}
+  togglePlay(){if(!this.playing&&this.sim.done) this.rebuild(); this.setPlaying(!this.playing); this.last=null;}
+  frame(ts){
+    if(this.playing){
+      const dtw=this.last===null?1/60:Math.min(0.05,(ts-this.last)/1000);
+      this.sim.advance(dtw*SPEEDS[+$('speed').value]);
+      if(this.sim.done) this.setPlaying(false);
+      this.dirty=true;
+    }
+    this.last=ts;
+    if(this.dirty){this.drawAll(); this.dirty=false;}
+  }
+  colors(P,n){
+    if(n<=6) return [P.measured,P.c1,P.c2,P.c3,P.c4,P.c5].slice(0,n);
+    const dark=XP.theme==='dark', out=[];
+    for(let i=0;i<n;i++) out.push(`hsl(${Math.round(90+250*(i-2)/(n-3))},70%,${dark?62:42}%)`);
+    out[0]=P.measured; out[1]=P.c1;   // run 1 orange and run 2 blue at every number of runs, as the text at the top says
+    return out;
+  }
+  bobs(s){ // positions of the bobs in metres, pivot at (0, 0), y upward
+    const S=this.sim, x1=S.l1*Math.sin(s[0]), y1=-S.l1*Math.cos(s[0]);
+    if(S.mode==='simple') return [[x1,y1]];
+    return [[x1,y1],[x1+S.l2*Math.sin(s[2]),y1-S.l2*Math.cos(s[2])]];
+  }
+  drawAll(){
+    const S=this.sim;
+    $('status').textContent=`t = ${S.t.toFixed(2)} s of ${S.tmax} s`;
+    this.drawView(); this.drawPhase(); this.drawTime('A'); this.drawTime('W'); this.drawGap();
+    const unit=S.mode==='simple'?'J/kg':'J', E=S.energy(S.S[0]);
+    $('energy').innerHTML=`Energy of run 1${S.mode==='simple'?' per kg of bob':''}: ${fmt(S.E0)} ${unit} at the start, ${fmt(E)} ${unit} now. `+(S.b===0?'With b = 0 they stay equal, a check on the calculation.':'Damping removes energy.');
+  }
+
+  /* ---- the main picture: every run's pendulum ---- */
+  drawView(){
+    const g=setup($('view')); if(!g) return; const {ctx,w,h}=g, P=XP.palette(), F=P.font, S=this.sim, n=S.S.length;
+    const C=this.colors(P,n);
+    ctx.fillStyle=P.bg; ctx.fillRect(0,0,w,h);
+    const kh=this.keyLayout(ctx,P,w-16).rows*17+10;
+    const top=kh+4, ah=h-top-4, R=(S.mode==='double'?S.l1+S.l2:S.l1)*1.12;
+    const sc=Math.min(w-8,ah)/(2*R), cx=w/2, cy=top+ah/2;
+    const X=x=>cx+x*sc, Y=y=>cy-y*sc;
+    this.geom={X,Y,ix:px=>(px-cx)/sc,iy:py=>-(py-cy)/sc};
+    // the region the pendulum can reach
+    ctx.fillStyle=P.field; ctx.beginPath(); ctx.arc(cx,cy,R/1.12*sc+12,0,2*Math.PI); ctx.fill();
+    ctx.strokeStyle=P.fieldGrid; ctx.lineWidth=1; ctx.setLineDash([3,4]);
+    ctx.beginPath(); ctx.arc(cx,cy,R/1.12*sc,0,2*Math.PI); ctx.stroke(); ctx.setLineDash([]);
+    // ceiling hatch above the pivot
+    ctx.strokeStyle=P.text; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(cx-22,cy-8); ctx.lineTo(cx+22,cy-8);
+    for(let k=-20;k<=20;k+=8){ctx.moveTo(cx+k,cy-8); ctx.lineTo(cx+k+6,cy-15);} ctx.stroke();
+    // paths of the lowest bob over the last 3 s, from the recorded points
+    const H=S.H, iEnd=H.t.length-1, i0=Math.max(0,iEnd-150);
+    if($('trail').checked){
+      for(let r=n-1;r>=0;r--){
+        const run=H.runs[r]; ctx.strokeStyle=C[r]; ctx.lineWidth=r===0?2:1.6;
+        for(let i=i0;i<iEnd;i++){
+          const a=this.bobs([run.th1[i],0,run.th2[i],0]), b=this.bobs([run.th1[i+1],0,run.th2[i+1],0]);
+          const p=a[a.length-1], q=b[b.length-1];
+          ctx.globalAlpha=(r===0?0.75:0.5)*(i-i0+1)/(iEnd-i0+1);
+          ctx.beginPath(); ctx.moveTo(X(p[0]),Y(p[1])); ctx.lineTo(X(q[0]),Y(q[1])); ctx.stroke();
+        }
+      }
+      ctx.globalAlpha=1;
+    }
+    // the pendulums, run 1 last so that it is on top
+    const rad=m=>Math.max(6,Math.min(16,0.07*R*sc*Math.cbrt(m)));
+    for(let r=n-1;r>=0;r--){
+      const pts=this.bobs(S.S[r]), main=r===0;
+      ctx.globalAlpha=main?1:(n>2?0.6:0.8);
+      ctx.strokeStyle=main?P.text:C[r]; ctx.lineWidth=main?3:2.2;
+      ctx.beginPath(); ctx.moveTo(cx,cy); pts.forEach(p=>ctx.lineTo(X(p[0]),Y(p[1]))); ctx.stroke();
+      pts.forEach((p,i)=>{
+        const m=S.mode==='simple'?1:(i===0?S.m1:S.m2);
+        ctx.fillStyle=C[r]; ctx.strokeStyle=P.bg; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.arc(X(p[0]),Y(p[1]),rad(m),0,2*Math.PI); ctx.fill(); ctx.stroke();
+      });
+    }
+    ctx.globalAlpha=1;
+    // pivot
+    ctx.fillStyle=P.text; ctx.fillRect(cx-5,cy-5,10,10);
+    // vertical guide lines and the angles of run 1, as in the lecture figure
+    if($('guides').checked){
+      const s=S.S[0], pts=this.bobs(s), L=Math.min(S.l1,S.mode==='double'?S.l2:S.l1)*0.55*sc;
+      const angle=(ox,oy,th,label)=>{
+        ctx.strokeStyle=P.muted; ctx.lineWidth=1.2; ctx.setLineDash([4,4]);
+        ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ox,oy+L); ctx.stroke(); ctx.setLineDash([]);
+        const a=wrapA(th), ra=L*0.6;
+        ctx.strokeStyle=P.accent; ctx.lineWidth=1.8; ctx.beginPath();
+        if(a>=0) ctx.arc(ox,oy,ra,Math.PI/2,Math.PI/2-a,true); else ctx.arc(ox,oy,ra,Math.PI/2,Math.PI/2-a,false);
+        ctx.stroke();
+        const mid=Math.PI/2-a/2; ctx.fillStyle=P.accent; ctx.font='bold 14px '+F; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(label,ox+(ra+13)*Math.cos(mid),oy+(ra+13)*Math.sin(mid));
+      };
+      angle(cx,cy,s[0],S.mode==='double'?'θ₁':'θ');
+      if(S.mode==='double') angle(X(pts[0][0]),Y(pts[0][1]),s[2],'θ₂');
+    }
+    this.key(ctx,P,8,10,w-16,C);
+  }
+  keyLayout(ctx,P,maxW){
+    ctx.font='12px '+P.font;
+    const n=this.sim.S.length, dth=$('dth').value, it=[{k:'run',r:0,label:'run 1'}];
+    if(n===2) it.push({k:'run',r:1,label:`run 2: starts ${dth} rad away`});
+    else if(n>2) it.push({k:'runs',label:`runs 2 to ${n}: each starts ${dth} rad further`});
+    if($('trail').checked) it.push({k:'trail',label:'path of the lowest bob'});
+    let x=0,row=0;
+    for(const i of it){i.w=26+ctx.measureText(i.label).width+16; if(x>0&&x+i.w>maxW){row++; x=0;} i.x=x; i.row=row; x+=i.w;}
+    return {it,rows:row+1};
+  }
+  key(ctx,P,x0,y0,maxW,C){
+    const {it}=this.keyLayout(ctx,P,maxW);
+    ctx.textAlign='left'; ctx.textBaseline='middle';
+    for(const i of it){
+      const x=x0+i.x, y=y0+i.row*17;
+      if(i.k==='run'){ctx.fillStyle=C[i.r]; ctx.beginPath(); ctx.arc(x+8,y,6,0,2*Math.PI); ctx.fill();}
+      else if(i.k==='runs'){for(let j=1;j<Math.min(4,C.length);j++){ctx.fillStyle=C[j]; ctx.beginPath(); ctx.arc(x+2+j*5,y,4,0,2*Math.PI); ctx.fill();}}
+      else{ctx.strokeStyle=C[0]; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+18,y); ctx.stroke();}
+      ctx.fillStyle=P.text; ctx.fillText(i.label,x+22,y);
+    }
+  }
+
+  /* ---- the plotted quantities ---- */
+  which(){return this.mode==='double'?$('which').value:'1';}
+  track(r){ // run r's recorded {t, th, om} for the pendulum shown; angles brought into −π..π if asked, with a NaN at each jump so the line breaks there
+    const H=this.sim.H, run=H.runs[r], w=this.which(), TH=run['th'+w], OM=run['w'+w];
+    if(!$('wrap').checked) return {t:H.t,th:TH,om:OM};
+    const t=[],th=[],om=[]; let prev=null;
+    for(let i=0;i<TH.length;i++){
+      const a=wrapA(TH[i]);
+      if(prev!==null&&Math.abs(a-prev)>Math.PI){t.push(NaN); th.push(NaN); om.push(NaN);}
+      t.push(H.t[i]); th.push(a); om.push(OM[i]); prev=a;
+    }
+    return {t,th,om};
+  }
+  runLabel(r,n){return r===0?'run 1':(r===1?(n===2?'run 2':'runs 2 to '+n):'');}
+  grow(key,lo,hi,minSpan){ // plot limits that only widen during a run, so the axes do not jump about
+    const L=this.lim[key]||{lo:Infinity,hi:-Infinity};
+    L.lo=Math.min(L.lo,lo); L.hi=Math.max(L.hi,hi);
+    if(L.hi-L.lo<minSpan){const c=(L.hi+L.lo)/2; L.lo=c-minSpan/2; L.hi=c+minSpan/2;}
+    this.lim[key]=L; const pad=(L.hi-L.lo)*0.08; return [L.lo-pad,L.hi+pad];
+  }
+  range(arrs){let lo=Infinity,hi=-Infinity; for(const a of arrs) for(const v of a) if(isFinite(v)){if(v<lo)lo=v; if(v>hi)hi=v;} return [lo,hi];}
+  predOn(){return this.mode==='simple'&&$('pred').checked;}
+  prediction(){ // small-angle prediction for run 1 over the whole run
+    const S=this.sim, ts=[],th=[],w=[];
+    for(let i=0;i<=600;i++){const t=S.tmax*i/600; const v=smallAngle(S,t); ts.push(t); th.push($('wrap').checked?wrapA(v[0]):v[0]); w.push(v[1]);}
+    return {ts,th,w};
+  }
+  drawPhase(){
+    const P=XP.palette(), S=this.sim, n=S.S.length, C=this.colors(P,n), wrap=$('wrap').checked;
+    const xs=[],ys=[];
+    for(let r=0;r<n;r++){const k=this.track(r); xs.push(k.th); ys.push(k.om);}
+    const series=[]; let pr=null;
+    if(this.predOn()){ // only up to the present time, so the phase plot shows the prediction for the same stretch of time as the runs
+      pr=this.prediction(); const k=pr.ts.findIndex(t=>t>S.t); if(k>=0){pr.th=pr.th.slice(0,k+1); pr.w=pr.w.slice(0,k+1);}
+      series.push({xs:pr.th,ys:pr.w,color:P.theory,dash:[6,5],width:1.5,label:'small-angle prediction, run 1'});
+    }
+    for(let r=n-1;r>=0;r--) series.push({xs:xs[r],ys:ys[r],color:C[r],width:r===0?2.2:1.6,label:this.runLabel(r,n)});
+    let [xl,xh]=this.range(xs.concat(pr?[pr.th]:[])), [yl,yh]=this.range(ys.concat(pr?[pr.w]:[]));
+    xl=Math.min(xl,0); xh=Math.max(xh,0); yl=Math.min(yl,0); yh=Math.max(yh,0);
+    if(wrap){xl=-Math.PI; xh=Math.PI;}
+    const [a,b]=wrap?[-Math.PI*1.04,Math.PI*1.04]:this.grow('px',xl,xh,0.5), [c,d]=this.grow('py',yl,yh,0.5);
+    const dots=[{x:0,y:0,color:P.text,r:6,ring:true}];
+    for(let r=n-1;r>=0;r--){const s=S.S[r], th=this.which()==='2'?s[2]:s[0], om=this.which()==='2'?s[3]:s[1]; dots.push({x:wrap?wrapA(th):th,y:om,color:C[r],r:r===0?6:5});}
+    XP.plot($('cvP'),{xmin:a,xmax:b,ymin:c,ymax:d,xlabel:'angle (rad)',ylabel:'angular velocity (rad/s)',series:this.legendFirst(series),dots});
+  }
+  legendFirst(series){ // run 1 is drawn last (on top) but listed first in the legend: empty labelled entries carry the legend, unlabelled copies draw the lines
+    const lab=series.filter(s=>s.label), first=s=>/^run 1|prediction/.test(s.label);
+    const order=[...lab.filter(first),...lab.filter(s=>!first(s))];
+    return [...order.map(s=>({xs:[],ys:[],color:s.color,dash:s.dash,width:s.width,label:s.label})), ...series.map(s=>({...s,label:''}))];
+  }
+  drawTime(kind){
+    const P=XP.palette(), S=this.sim, n=S.S.length, C=this.colors(P,n), q=kind==='A'?'th':'w';
+    const series=[], all=[];
+    let pr=null;
+    if(this.predOn()){pr=this.prediction(); const ys=q==='th'?pr.th:pr.w; series.push({xs:pr.ts,ys,color:P.theory,dash:[6,5],width:1.5,label:'small-angle prediction, run 1'}); all.push(ys);}
+    for(let r=n-1;r>=0;r--){
+      const k=this.track(r), ys=q==='th'?k.th:k.om; all.push(ys);
+      series.push({xs:k.t,ys,color:C[r],width:r===0?2.2:1.6,label:this.runLabel(r,n)});
+    }
+    let [lo,hi]=this.range(all);
+    let lims=(q==='th'&&$('wrap').checked)?[-Math.PI*1.04,Math.PI*1.04]:this.grow(kind,lo,hi,0.5);
+    const dots=[]; const it=S.H.t.length-1;
+    for(let r=n-1;r>=0;r--){const run=S.H.runs[r]; let v=(q==='th'?run['th'+this.which()]:run['w'+this.which()])[it]; if(q==='th'&&$('wrap').checked) v=wrapA(v); dots.push({x:S.H.t[it],y:v,color:C[r],r:r===0?5:4});}
+    XP.plot($(kind==='A'?'cvA':'cvW'),{xmin:0,xmax:S.tmax,ymin:lims[0],ymax:lims[1],xlabel:'time t (s)',ylabel:q==='th'?'angle (rad)':'angular velocity (rad/s)',series:this.legendFirst(series),dots});
+  }
+  drawGap(){
+    const P=XP.palette(), S=this.sim, cv=$('cvG');
+    if(S.S.length<2){
+      const g=setup(cv); if(!g) return; const {ctx,w,h}=g; ctx.fillStyle=P.bg; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle=P.muted; ctx.font='13px '+P.font; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('Set the number of runs to 2 or more to compare two runs.',w/2,h/2); return;
+    }
+    const T=S.H.t, ys=[]; for(let i=0;i<T.length;i++){const gp=S.gap(i); ys.push(gp>0?Math.log10(gp):NaN);}
+    const d0=Math.log10(+$('dth').value);
+    let lo=Math.floor(d0)-1, hi=1; for(const v of ys) if(isFinite(v)){if(v>hi) hi=Math.ceil(v); if(v<lo) lo=Math.floor(v);}
+    XP.plot(cv,{xmin:0,xmax:S.tmax,ymin:lo,ymax:hi,ylog:true,xlabel:'time t (s)',ylabel:'gap',
+      series:[{xs:T,ys,color:P.measured,width:2.2,label:'gap between run 1 and run 2 (rad and rad/s combined)'}],
+      dots:[{x:T[T.length-1],y:ys[ys.length-1],color:P.measured,r:5}]});
+  }
+}
+
+XP.init();
+const app=new App();
+(function loop(ts){app.frame(ts||0); requestAnimationFrame(loop);})();
+window.__app=app;
+})();
+</script>
+</body>
+</html>
