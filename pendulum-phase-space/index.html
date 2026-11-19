@@ -100,8 +100,10 @@
       <p class="hint">An angle of θ + 2π is the same position as θ. When a pendulum goes over the top, its angle keeps growing; ticked, every angle is brought back into −π to π, so the line jumps from one edge of the plot to the other.</p></div>
     <div class="opt"><label class="chk"><input type="checkbox" id="trail" checked> Show the path of the lowest bob over the last 3 s</label></div>
     <div class="opt"><label class="chk"><input type="checkbox" id="guides" checked> Show the vertical lines and the angles θ on run 1</label></div>
-    <div class="opt" data-mode="simple"><label class="chk"><input type="checkbox" id="pred" checked> Show the small-angle prediction for run 1 (dashed)</label>
-      <p class="hint">The solution of the equation with sin θ replaced by θ. Notes explains it.</p></div>
+    <div class="opt" data-mode="simple"><label class="chk"><input type="checkbox" id="pred"> Show the small-angle prediction for run 1 (dashed)</label>
+      <p class="hint">The solution of the equation with sin θ replaced by θ. Notes explains it. It is drawn only up to the present time of the run, beside the simulation.</p></div>
+    <div class="opt" data-mode="simple"><label class="chk"><input type="checkbox" id="ahead"> Draw the prediction for the whole run in advance</label>
+      <p class="hint">Shows where the prediction says run 1 will go before the simulation gets there. Works only with the prediction ticked.</p></div>
     <p class="hint">Changing any setting except the playback speed and what is shown starts a new run. Changing the system puts back that system's starting values.</p>
     <p class="hint">Keys: Space = play or pause, S = one step, R = reset.</p>
   </div>
@@ -129,7 +131,7 @@
     <span class="eq">λ² + bλ + g/l = 0 &nbsp;⇒&nbsp; λ = −b/2 ± i ω<sub>d</sub>, &nbsp; ω<sub>d</sub> = √(g/l − b²/4)</span>
     <p>So the pendulum swings at the angular frequency ω<sub>d</sub> inside an envelope e<sup>−bt/2</sup> that shrinks with time. With the starting values θ(0) and ω(0):</p>
     <span class="eq">θ(t) = e<sup>−bt/2</sup> [ θ(0) cos ω<sub>d</sub>t + ((ω(0) + bθ(0)/2) / ω<sub>d</sub>) sin ω<sub>d</sub>t ]</span>
-    <p>This is the dashed curve on the simple pendulum's plots. The eigenvalues classify the critical point θ = 0, ω = 0:</p>
+    <p>Tick "Show the small-angle prediction" in Settings to draw this as a dashed curve on the simple pendulum's plots, up to the present time of the run. The eigenvalues classify the critical point θ = 0, ω = 0:</p>
     <ul>
       <li><b>b &gt; 0:</b> complex eigenvalues with a negative real part. The point is an <b>asymptotically stable spiral</b>: every nearby trajectory spirals into it.</li>
       <li><b>b = 0:</b> eigenvalues ±i√(g/l), purely imaginary. The trajectories are closed curves around the point, and the motion is periodic, with period T = 2π√(l/g) (2.006 s for l = 1 m on Earth).</li>
@@ -156,7 +158,7 @@
     <h3>What to look for</h3>
     <ol>
       <li>Simple pendulum, default settings: both runs spiral into the critical point θ = 0, ω = 0 (the open circle in phase space), and the gap stays small. Set b = 0: the trajectory becomes a closed curve, and the motion repeats.</li>
-      <li>Simple pendulum, θ(0) = 0.2: the simulation and the dashed prediction agree. Set θ(0) = 2: the swings take longer than predicted, and the curves drift apart.</li>
+      <li>Simple pendulum, θ(0) = 0.2, with the small-angle prediction ticked in Settings: the simulation and the dashed prediction agree. Set θ(0) = 2: the swings take longer than predicted, and the curves drift apart.</li>
       <li>Simple pendulum, ω(0) = 6.5 rad/s with b = 0 and θ(0) = 0: the pendulum goes over the top and keeps turning; ω never reaches zero. Try 6.2 rad/s: now it swings back. The boundary between the two is the curve in phase space through the point θ = π, ω = 0.</li>
       <li>Double pendulum, default settings: the two runs look identical for several seconds, then move completely differently. The gap rises along a rough straight line on the logarithmic scale before levelling off.</li>
       <li>Make Δθ 10 or 100 times smaller: the runs stay together only a few seconds longer.</li>
@@ -282,7 +284,7 @@ class App{
     $('speed').addEventListener('input',()=>this.labels());
     for(const id of ['th1','th2','w0','b','m1','m2','l1','l2','w1','w2']) $(id).addEventListener('input',()=>this.rebuild());
     for(const id of ['dth','runs','g','tmax']) $(id).addEventListener('change',()=>this.rebuild());
-    for(const id of ['which','wrap','trail','guides','pred']) $(id).addEventListener('change',()=>{this.lim={}; this.applyMode(false); this.dirty=true;});
+    for(const id of ['which','wrap','trail','guides','pred','ahead']) $(id).addEventListener('change',()=>{this.lim={}; this.applyMode(false); this.dirty=true;});
     window.addEventListener('resize',()=>{this.dirty=true;});
     XP.onTheme(()=>{this.dirty=true;});
     document.addEventListener('keydown',e=>{
@@ -503,9 +505,10 @@ class App{
   }
   range(arrs){let lo=Infinity,hi=-Infinity; for(const a of arrs) for(const v of a) if(isFinite(v)){if(v<lo)lo=v; if(v>hi)hi=v;} return [lo,hi];}
   predOn(){return this.mode==='simple'&&$('pred').checked;}
-  prediction(){ // small-angle prediction for run 1 over the whole run
-    const S=this.sim, ts=[],th=[],w=[];
-    for(let i=0;i<=600;i++){const t=S.tmax*i/600; const v=smallAngle(S,t); ts.push(t); th.push($('wrap').checked?wrapA(v[0]):v[0]); w.push(v[1]);}
+  prediction(){ // small-angle prediction for run 1: up to the present time of the run, or the whole run when "in advance" is ticked
+    const S=this.sim, tEnd=$('ahead').checked?S.tmax:S.t, ts=[],th=[],w=[];
+    const n=Math.max(1,Math.ceil(600*tEnd/S.tmax));
+    for(let i=0;i<=n;i++){const t=tEnd*i/n; const v=smallAngle(S,t); ts.push(t); th.push($('wrap').checked?wrapA(v[0]):v[0]); w.push(v[1]);}
     return {ts,th,w};
   }
   drawPhase(){
@@ -513,8 +516,8 @@ class App{
     const xs=[],ys=[];
     for(let r=0;r<n;r++){const k=this.track(r); xs.push(k.th); ys.push(k.om);}
     const series=[]; let pr=null;
-    if(this.predOn()){ // only up to the present time, so the phase plot shows the prediction for the same stretch of time as the runs
-      pr=this.prediction(); const k=pr.ts.findIndex(t=>t>S.t); if(k>=0){pr.th=pr.th.slice(0,k+1); pr.w=pr.w.slice(0,k+1);}
+    if(this.predOn()){
+      pr=this.prediction();
       series.push({xs:pr.th,ys:pr.w,color:P.theory,dash:[6,5],width:1.5,label:'small-angle prediction, run 1'});
     }
     for(let r=n-1;r>=0;r--) series.push({xs:xs[r],ys:ys[r],color:C[r],width:r===0?2.2:1.6,label:this.runLabel(r,n)});
