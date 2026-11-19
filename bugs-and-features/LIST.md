@@ -4,7 +4,7 @@ No open items.
 
 ## Done
 
-- 2026-11-19: Pendulum in phase space (`pendulum-phase-space/index.html`), from the simple and double pendulum programs of the ChE 3020 dynamical systems lecture: simple or double pendulum, several runs started Δθ apart, phase space, angle and angular velocity against time, gap between two runs on a log scale, Notes with the theory. Shared plot helper gained a log scale (`ylog`), dots and line breaks at NaN. Tested locally; not yet published.
+- 2026-11-19: Pendulum in phase space (`pendulum-phase-space/index.html`), from the simple and double pendulum programs of the ChE 3020 dynamical systems lecture: simple or double pendulum, several runs started Δθ apart, phase space, angle and angular velocity against time, gap between two runs on a log scale, Notes with the theory. Shared plot helper gained a log scale (`ylog`), dots and line breaks at NaN. Published 2026-11-19 at https://priye19.github.io/explorables/pendulum-phase-space/ and checked live.
 
 - 2026-11-13: Random walk 1D picture is now a number line with the molecules jumping left and right, matching 2D and 3D (his correction); the position-against-time picture is a choice in Settings.
 
